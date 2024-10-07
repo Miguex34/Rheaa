@@ -35,18 +35,26 @@ exports.login = async (req, res) => {
     }
 
     const contraseñaValida = bcrypt.compareSync(contraseña, usuario.contrasena_hash);
+    console.log('Contraseña válida:', contraseñaValida);
 
     if (!contraseñaValida) {
       return res.status(401).json({ error: 'Contraseña incorrecta' });
     }
 
-    const token = jwt.sign({ id: usuario.id, rol: usuario.rol }, process.env.JWT_SECRET, {
-      expiresIn: '1h',
-    });
+    const token = jwt.sign(
+      { id: usuario.id, correo: usuario.correo, rol: usuario.rol },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+    
+
+    console.log('Token generado:', token);
 
     res.json({ token });
   } catch (error) {
-    res.status(500).json({ error: 'Error en el login' });
+    // Manejo de errores con detalles
+    console.error('Error en el login:', error.message, error.stack); // Imprimir más detalles del error
+    res.status(500).json({ error: 'Error en el login', detalle: error.message });
   }
 };
 

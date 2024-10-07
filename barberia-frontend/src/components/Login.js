@@ -24,13 +24,20 @@ const Login = () => {
         correo: formData.correo,
         contraseña: formData.contraseña,
       });
-      console.log(response.data);  
+  
+      const { token } = response.data;
+      localStorage.setItem('token', token);
       setResponseMessage('Login exitoso!');
+      window.location.href = "/crear-negocio";
+  
     } catch (error) {
-      console.error('Error en la petición:', error.response.data);
-      setResponseMessage(`Error al iniciar sesión: ${error.response.data.error || 'Error desconocido'}`);
+      // Capturar y mostrar detalles del error
+      console.error('Error en la petición:', error.response ? error.response.data : error.message);
+      setResponseMessage(`Error al iniciar sesión: ${error.response?.data?.error || 'Error desconocido'}`);
     }
   };
+  
+  
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">

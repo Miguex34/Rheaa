@@ -25,12 +25,11 @@ const Negocio = sequelize.define('Negocio', {
   correo: {
     type: DataTypes.STRING,
     allowNull: false,
+    unique: true, // Garantiza que `correo` sea único
   },
 }, {
-  tableName: 'negocio',  // Nombre correcto de la tabla
+  tableName: 'negocio',  // Asegúrate de que el nombre coincide con la tabla en la base de datos
   timestamps: false,
 });
-
-module.exports = Negocio;
 
 module.exports = Negocio;

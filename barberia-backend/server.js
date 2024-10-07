@@ -31,11 +31,11 @@ sequelize.authenticate()
   .then(() => {
     console.log('Conexión a la base de datos exitosa');
     
-    // Sincronizar las tablas solo si es necesario
-    return sequelize.sync({ alter: true });  // Alter asegura la actualización de la estructura sin borrar datos
+    // Sincronizar las tablas sin duplicarlas
+    return sequelize.sync({ force: false, alter: true });  // Asegura que no se dupliquen las tablas y que se actualicen solo si es necesario
   })
   .then(() => {
-    console.log('Base de datos sincronizada');
+    console.log('Base de datos sincronizada correctamente');
   })
   .catch((err) => {
     console.error('Error al conectar o sincronizar la base de datos:', err);

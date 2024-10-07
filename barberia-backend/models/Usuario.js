@@ -1,6 +1,10 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
+// Importa el modelo Negocio correctamente
+const Negocio = require('./Negocio');
+
+// Define el modelo Usuario
 const Usuario = sequelize.define('Usuario', {
   nombre: {
     type: DataTypes.STRING,
@@ -41,8 +45,11 @@ const Usuario = sequelize.define('Usuario', {
   },
 }, {
   timestamps: false,
+  tableName: 'usuario',
 });
 
+// Definir la relación "uno a muchos" entre Usuario y Negocio
+Usuario.hasMany(Negocio, { foreignKey: 'id_dueno' });
+Negocio.belongsTo(Usuario, { foreignKey: 'id_dueno' });  // Relación inversa
+
 module.exports = Usuario;
-
-
