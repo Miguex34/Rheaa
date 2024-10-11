@@ -1,43 +1,31 @@
 // src/components/Login.js
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    correo: '',
-    contraseña: ''
-  });
-
-  const [responseMessage, setResponseMessage] = useState('');
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const [correo, setCorreo] = useState('');
+  const [contraseña, setContraseña] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
     try {
       const response = await axios.post('http://localhost:5000/api/users/login', {
-        correo: formData.correo,
-        contraseña: formData.contraseña,
+        correo,
+        contraseña,
       });
-  
+
       const { token } = response.data;
       localStorage.setItem('token', token);
-      setResponseMessage('Login exitoso!');
-      window.location.href = "/crear-negocio";
-  
+      navigate('/panel-reservas');
     } catch (error) {
-      // Capturar y mostrar detalles del error
-      console.error('Error en la petición:', error.response ? error.response.data : error.message);
-      setResponseMessage(`Error al iniciar sesión: ${error.response?.data?.error || 'Error desconocido'}`);
+      setError('Error al iniciar sesión. Verifica tus credenciales.');
     }
   };
-  
-  
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
@@ -50,8 +38,8 @@ const Login = () => {
               type="email"
               id="correo"
               name="correo"
-              value={formData.correo}
-              onChange={handleChange}
+              value={correo}
+              onChange={(e) => setCorreo(e.target.value)}
               className="w-full p-2 border border-gray-300 rounded mt-1"
               required
             />
@@ -62,24 +50,20 @@ const Login = () => {
               type="password"
               id="contraseña"
               name="contraseña"
-              value={formData.contraseña}
-              onChange={handleChange}
+              value={contraseña}
+              onChange={(e) => setContraseña(e.target.value)}
               className="w-full p-2 border border-gray-300 rounded mt-1"
               required
             />
           </div>
-          <button
-            type="submit"
-            className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-          >
+          {error && <p className="text-red-500 text-center">{error}</p>}
+          <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
             Iniciar Sesión
           </button>
         </form>
-        {responseMessage && (
-          <div className="mt-4 text-center text-red-500">
-            {responseMessage}
-          </div>
-        )}
+        <div className="mt-4 text-center">
+          <p>¿No tienes una cuenta? <Link to="/register" className="text-blue-500">Regístrate</Link></p>
+        </div>
       </div>
     </div>
   );

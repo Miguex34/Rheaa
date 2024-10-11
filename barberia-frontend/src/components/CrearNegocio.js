@@ -24,7 +24,7 @@ const CrearNegocio = () => {
     try {
       const token = localStorage.getItem('token'); // Obtener el token desde el almacenamiento local
       const response = await axios.post(
-        'http://localhost:5000/api/negocios/crear',
+        'http://localhost:5000/api/negocio/crear',
         formData, // Enviar solo los datos relevantes (sin el correo)
         {
           headers: {

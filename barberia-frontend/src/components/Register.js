@@ -1,6 +1,7 @@
 // src/components/Register.js
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -8,10 +9,16 @@ const Register = () => {
     correo: '',
     contraseña: '',
     telefono: '',
+    nombreNegocio: '',
+    telefonoNegocio: '',
+    direccionNegocio: '',
+    horario_inicio: '',
+    horario_cierre: '',
     rol: 'dueño',
   });
 
   const [responseMessage, setResponseMessage] = useState('');
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
@@ -22,19 +29,18 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
+    // Imprimir los datos del formulario para verificar
+    console.log('Datos enviados:', formData);
+  
     try {
-      const response = await axios.post('http://localhost:5000/api/users/register', {
-        nombre: formData.nombre,
-        correo: formData.correo,
-        contraseña: formData.contraseña,
-        telefono: formData.telefono,
-        rol: formData.rol,
-      });
-      console.log(response.data);
-      setResponseMessage('Usuario registrado exitosamente');
+      const response = await axios.post('http://localhost:5000/api/users/register', formData);
+      const { token } = response.data;
+      localStorage.setItem('token', token);
+      navigate('/panel-reservas');
     } catch (error) {
-      console.error('Error en la petición:', error.response.data);
-      setResponseMessage(`Error al registrar usuario: ${error.response.data.detalle || 'Error desconocido'}`);
+      console.error('Error al registrar:', error);
+      setResponseMessage('Error al registrar el usuario');
     }
   };
 
@@ -43,63 +49,81 @@ const Register = () => {
       <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
         <h1 className="text-2xl font-bold mb-6 text-center">Registrar una Cuenta</h1>
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="nombre" className="block text-gray-700">Nombre Completo</label>
-            <input
-              type="text"
-              id="nombre"
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded mt-1"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label htmlFor="correo" className="block text-gray-700">Correo Electrónico</label>
-            <input
-              type="email"
-              id="correo"
-              name="correo"
-              value={formData.correo}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded mt-1"
-              required
-            />
-          </div>
-            <div className="flex">
-            <span className="p-2 bg-gray-200 border border-gray-300 rounded-l">+56 9</span>
-            <input
-              type="tel"
-              id="telefono"
-              name="telefono"
-              value={formData.telefono}
-              onChange={handleChange}
-              className={`w-full p-2 border ${responseMessage ? 'border-red-500' : 'border-gray-300'} rounded-r mt-1`}
-              maxLength="8"  // Solo permitimos 8 números aquí
-              pattern="[0-9]{8}"  // Validamos con una expresión regular
-              required
-            />
-          </div>
+          <input
+            type="text"
+            name="nombre"
+            placeholder="Nombre Completo"
+            value={formData.nombre}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="email"
+            name="correo"
+            placeholder="Correo Electrónico"
+            value={formData.correo}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="password"
+            name="contraseña"
+            placeholder="Contraseña"
+            value={formData.contraseña}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="tel"
+            name="telefono"
+            placeholder="Teléfono"
+            value={formData.telefono}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="text"
+            name="nombreNegocio"
+            placeholder="Nombre del Negocio"
+            value={formData.nombreNegocio}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="text"
+            name="telefonoNegocio"
+            placeholder="Teléfono del Negocio"
+            value={formData.telefonoNegocio}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="text"
+            name="direccionNegocio"
+            placeholder="Dirección del Negocio"
+            value={formData.direccionNegocio}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="time"
+            name="horario_inicio"
+            placeholder="Horario de Inicio"
+            value={formData.horario_inicio}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="time"
+            name="horario_cierre"
+            placeholder="Horario de Cierre"
+            value={formData.horario_cierre}
+            onChange={handleChange}
+            required
+          />
 
-
-          <div className="mb-4">
-            <label htmlFor="contraseña" className="block text-gray-700">Contraseña</label>
-            <input
-              type="password"
-              id="contraseña"
-              name="contraseña"
-              value={formData.contraseña}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded mt-1"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-          >
-            Crear Cuenta
+          <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+            Registrar y Crear Negocio
           </button>
         </form>
         {responseMessage && (
