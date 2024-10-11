@@ -11,9 +11,7 @@ import Configuracion from './components/Configuracion';
 import Soporte from './components/Soporte';
 import Login from './components/Login';
 import Register from './components/Register';
-
-// No más importaciones de modelos de backend ni librerías del backend
-
+import './index.css';
 // Función PrivateRoute para proteger rutas
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -54,6 +52,4 @@ function App() {
       <AppContent />
     </Router>
   );
-}
-
-export default App;
+}export default App;

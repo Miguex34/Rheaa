@@ -14,9 +14,7 @@ const Sidebar = ({ tieneNegocio }) => {
       <div className="p-4 text-xl font-bold">Rhea Reserve</div>
       <ul className="mt-4">
         {/* Opción siempre visible */}
-        <li className="p-2 hover:bg-gray-700">
-          <Link to="/crear-negocio">Crea Tu Negocio</Link>
-        </li>
+        
 
         {/* Opciones visibles solo si tiene un negocio */}
         {tieneNegocio && (

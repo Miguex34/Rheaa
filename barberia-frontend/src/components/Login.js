@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import fondo from '../assets/images/fondo.png';
 
 const Login = () => {
   const [correo, setCorreo] = useState('');
@@ -28,8 +29,12 @@ const Login = () => {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
+    <div
+      className="min-h-screen flex items-center justify-center bg-cover bg-center"
+      style={{ backgroundImage: `url(${fondo})` }}
+    >
+    <div className="min-h-screen flex items-center justify-center bg-cover bg-center" style={{ backgroundImage: 'url(./assets/images/fondo.png)' }}>
+            <div className="bg-white bg-opacity-50 p-8 rounded-lg shadow-lg max-w-md w-full">
         <h1 className="text-2xl font-bold mb-6 text-center">Iniciar Sesión</h1>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
@@ -64,6 +69,7 @@ const Login = () => {
         <div className="mt-4 text-center">
           <p>¿No tienes una cuenta? <Link to="/register" className="text-blue-500">Regístrate</Link></p>
         </div>
+      </div>
       </div>
     </div>
   );
