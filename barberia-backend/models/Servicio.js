@@ -1,3 +1,4 @@
+// models/Servicio.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 const Negocio = require('./Negocio');
@@ -12,11 +13,11 @@ const Servicio = sequelize.define('Servicio', {
     allowNull: true,
   },
   duracion: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.INTEGER, // duración en minutos
     allowNull: false,
   },
   precio: {
-    type: DataTypes.DECIMAL(10, 2),
+    type: DataTypes.FLOAT,
     allowNull: false,
   },
   disponible: {
@@ -25,14 +26,15 @@ const Servicio = sequelize.define('Servicio', {
   },
   id_negocio: {
     type: DataTypes.INTEGER,
+    allowNull: false,
     references: {
       model: Negocio,
       key: 'id',
     },
-    allowNull: false,
+    onDelete: 'CASCADE',
   },
 }, {
-  tableName: 'servicio',  // Nombre correcto en la base de datos
+  tableName: 'servicio',
   timestamps: false,
 });
 

@@ -23,9 +23,9 @@ const register = async (req, res) => {
   try {
     // Verificar si el correo ya está registrado
     const existingUser = await Usuario.findOne({ where: { correo } });
-if (existingUser) {
-  return res.status(400).json({ message: 'El correo ya está registrado' });
-}
+    if (existingUser) {
+      return res.status(400).json({ message: 'El correo ya está registrado' });
+    }
 
     // Crear el hash de la contraseña
     const hashedPassword = await bcrypt.hash(contraseña, 10);
@@ -50,6 +50,7 @@ if (existingUser) {
       horario_inicio,
       horario_cierre,
       correo: nuevoUsuario.correo,
+      id_dueno: nuevoUsuario.id, // Asegúrate de asignar el id_dueno al crear el negocio
     });
 
     // Crear la relación entre el usuario y el negocio (dueño de negocio)
@@ -71,32 +72,29 @@ if (existingUser) {
   }
 };
 
-// Función para iniciar sesión de un usuario
+// Función para el inicio de sesión
 const login = async (req, res) => {
   const { correo, contraseña } = req.body;
 
   try {
-    // Buscar el usuario por correo
     const usuario = await Usuario.findOne({ where: { correo } });
     if (!usuario) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    // Verificar la contraseña
     const isPasswordValid = await bcrypt.compare(contraseña, usuario.contrasena_hash);
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Contraseña incorrecta' });
     }
 
-    // Generar un token JWT para el usuario autenticado
     const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, {
       expiresIn: '1d',
     });
 
     return res.status(200).json({ message: 'Inicio de sesión exitoso', token });
   } catch (error) {
-    console.error('Error al iniciar sesión:', error);
-    return res.status(500).json({ error: 'Error en el inicio de sesión', detalle: error.message });
+    console.error('Error en el inicio de sesión:', error);
+    return res.status(500).json({ error: 'Error al iniciar sesión', detalle: error.message });
   }
 };
 
@@ -105,18 +103,14 @@ const getUserById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Buscar el usuario por su ID
-    const usuario = await Usuario.findByPk(id, {
-      attributes: { exclude: ['contrasena_hash'] }, // Excluir la contraseña en la respuesta
-    });
-
+    const usuario = await Usuario.findByPk(id);
     if (!usuario) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
     return res.status(200).json(usuario);
   } catch (error) {
-    console.error('Error al obtener el usuario por ID:', error);
+    console.error('Error al obtener el usuario:', error);
     return res.status(500).json({ error: 'Error al obtener el usuario', detalle: error.message });
   }
 };

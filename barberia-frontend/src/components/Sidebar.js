@@ -1,14 +1,22 @@
-// src/components/Sidebar.js
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Sidebar = ({ tieneNegocio }) => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token'); // Elimina el token
+    navigate('/login'); // Redirige al login
+  };
+
   return (
     <div className="w-64 h-screen bg-gray-800 text-white">
       <div className="p-4 text-xl font-bold">Rhea Reserve</div>
       <ul className="mt-4">
         {/* Opción siempre visible */}
-        
+        <li className="p-2 hover:bg-gray-700">
+          <Link to="/crear-negocio">Crea Tu Negocio</Link>
+        </li>
 
         {/* Opciones visibles solo si tiene un negocio */}
         {tieneNegocio && (
@@ -36,6 +44,10 @@ const Sidebar = ({ tieneNegocio }) => {
             </li>
           </>
         )}
+        {/* Agregar opción de logout */}
+        <li className="p-2 hover:bg-gray-700">
+          <button onClick={handleLogout} className="w-full text-left">Cerrar sesión</button>
+        </li>
       </ul>
     </div>
   );

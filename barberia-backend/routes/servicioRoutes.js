@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const servicioController = require('../controllers/servicioController');
+const authMiddleware = require('../middleware/authMiddleware');
 
-// Rutas para los servicios
-router.post('/', servicioController.createServicio);
-router.get('/negocio/:id_negocio', servicioController.getServiciosByNegocio);
-router.get('/:id', servicioController.getServicioById);
+router.get('/', authMiddleware, servicioController.getServicios);
+router.post('/', authMiddleware, servicioController.addServicio);
+router.put('/:id', authMiddleware, servicioController.updateServicio);
 
 module.exports = router;

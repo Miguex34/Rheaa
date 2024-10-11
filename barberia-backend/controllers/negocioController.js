@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 exports.createNegocio = async (req, res) => {
   try {
     const { nombre, telefono, direccion, horario_inicio, horario_cierre } = req.body;
-
+    const id_dueno = req.user.id; 
     // Obtener el correo del usuario desde el token decodificado
     const correo = req.user.correo;
     console.log('Correo del usuario:', correo); // Log del correo
@@ -19,6 +19,7 @@ exports.createNegocio = async (req, res) => {
       horario_inicio,
       horario_cierre,
       correo,
+      id_dueno,
     });
     console.log('Negocio creado:', negocio); // Log del negocio creado
 

@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/database'); // Solo una vez
+require('./models/associations');
+
 
 // Importa tus rutas
 const userRoutes = require('./routes/userRoutes');

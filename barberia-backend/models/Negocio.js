@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
+const Usuario = require('./Usuario'); // Asegúrate de importar el modelo Usuario
 
 const Negocio = sequelize.define('Negocio', {
   nombre: {
@@ -25,11 +26,19 @@ const Negocio = sequelize.define('Negocio', {
   correo: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true, // Garantiza que `correo` sea único
+    unique: true,
+  },
+  id_dueno: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'Usuario',
+      key: 'id',
+    },
   },
 }, {
-  tableName: 'negocio',  // Asegúrate de que el nombre coincide con la tabla en la base de datos
   timestamps: false,
+  tableName: 'negocio',
 });
 
 module.exports = Negocio;

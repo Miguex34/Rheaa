@@ -1,9 +1,6 @@
-// models/Usuario.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
-const Negocio = require('./Negocio'); // Importa el modelo Negocio correctamente
 
-// Define el modelo Usuario
 const Usuario = sequelize.define('Usuario', {
   nombre: {
     type: DataTypes.STRING,
@@ -41,15 +38,11 @@ const Usuario = sequelize.define('Usuario', {
   rol: {
     type: DataTypes.STRING,
     allowNull: false,
-    defaultValue: 'dueño', // Añade un valor predeterminado para asegurar que siempre haya un valor
+    defaultValue: 'dueño',
   },
 }, {
   timestamps: false,
   tableName: 'usuario',
 });
-
-// Definir la relación "uno a muchos" entre Usuario y Negocio
-Usuario.hasMany(Negocio, { foreignKey: 'id_dueno' });
-Negocio.belongsTo(Usuario, { foreignKey: 'id_dueno' }); // Relación inversa
 
 module.exports = Usuario;
