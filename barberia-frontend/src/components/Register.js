@@ -29,10 +29,7 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    // Imprimir los datos del formulario para verificar
-    console.log('Datos enviados:', formData);
-  
+
     try {
       const response = await axios.post('http://localhost:5000/api/users/register', formData);
       const { token } = response.data;
@@ -45,87 +42,116 @@ const Register = () => {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center">Registrar una Cuenta</h1>
-        <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            name="nombre"
-            placeholder="Nombre Completo"
-            value={formData.nombre}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="email"
-            name="correo"
-            placeholder="Correo Electrónico"
-            value={formData.correo}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="password"
-            name="contraseña"
-            placeholder="Contraseña"
-            value={formData.contraseña}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="tel"
-            name="telefono"
-            placeholder="Teléfono"
-            value={formData.telefono}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="text"
-            name="nombreNegocio"
-            placeholder="Nombre del Negocio"
-            value={formData.nombreNegocio}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="text"
-            name="telefonoNegocio"
-            placeholder="Teléfono del Negocio"
-            value={formData.telefonoNegocio}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="text"
-            name="direccionNegocio"
-            placeholder="Dirección del Negocio"
-            value={formData.direccionNegocio}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="time"
-            name="horario_inicio"
-            placeholder="Horario de Inicio"
-            value={formData.horario_inicio}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="time"
-            name="horario_cierre"
-            placeholder="Horario de Cierre"
-            value={formData.horario_cierre}
-            onChange={handleChange}
-            required
-          />
+    <div className="flex justify-center items-center min-h-screen bg-white px-4">
+      <div className="w-full max-w-5xl bg-gray-800 rounded-lg shadow-lg p-6 md:p-10 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-4">
+              ¡Crea Tu <span className="text-purple-400">Cuenta</span>!
+            </h2>
+            <form className="space-y-4">
+              <input
+                type="text"
+                name="nombre"
+                placeholder="Introduce tu Nombre Completo"
+                value={formData.nombre}
+                onChange={handleChange}
+                required
+                className="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <input
+                type="email"
+                name="correo"
+                placeholder="Introduce tu Correo Electrónico"
+                value={formData.correo}
+                onChange={handleChange}
+                required
+                className="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <input
+                type="password"
+                name="contraseña"
+                placeholder="Introduce tu Contraseña"
+                value={formData.contraseña}
+                onChange={handleChange}
+                required
+                className="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <input
+                type="tel"
+                name="telefono"
+                placeholder="+56"
+                value={formData.telefono}
+                onChange={handleChange}
+                required
+                className="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </form>
+          </div>
 
-          <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
-            Registrar y Crear Negocio
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-4">
+              ¡Registra Tu <span className="text-purple-400">Negocio</span>!
+            </h2>
+            <form className="space-y-4">
+              <input
+                type="text"
+                name="nombreNegocio"
+                placeholder="Nombre del Negocio"
+                value={formData.nombreNegocio}
+                onChange={handleChange}
+                required
+                className="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <input
+                type="text"
+                name="direccionNegocio"
+                placeholder="Dirección del Negocio"
+                value={formData.direccionNegocio}
+                onChange={handleChange}
+                required
+                className="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <input
+                type="time"
+                name="horario_inicio"
+                placeholder="Horario de Apertura"
+                value={formData.horario_inicio}
+                onChange={handleChange}
+                required
+                className="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <input
+                type="time"
+                name="horario_cierre"
+                placeholder="Horario de Cierre"
+                value={formData.horario_cierre}
+                onChange={handleChange}
+                required
+                className="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <input
+                type="tel"
+                name="telefonoNegocio"
+                placeholder="Teléfono de la empresa"
+                value={formData.telefonoNegocio}
+                onChange={handleChange}
+                required
+                className="w-full p-3 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </form>
+          </div>
+        </div>
+
+        <div className="flex justify-center">
+          <button
+            onClick={handleSubmit}
+            className="bg-purple-500 text-white px-6 py-3 rounded-lg shadow hover:bg-purple-600 transition duration-300"
+          >
+            Crear Cuenta
           </button>
-        </form>
+        </div>
+
         {responseMessage && (
           <div className="mt-4 text-center text-red-500">
             {responseMessage}

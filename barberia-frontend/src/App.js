@@ -2,7 +2,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
-import CrearNegocio from './components/CrearNegocio';
 import PanelReservas from './components/PanelReservas';
 import Servicios from './components/Servicios';
 import Profesionales from './components/Profesionales';
@@ -35,7 +34,6 @@ const AppContent = () => {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/crear-negocio" element={<PrivateRoute><CrearNegocio /></PrivateRoute>} />
           <Route path="/panel-reservas" element={<PrivateRoute><PanelReservas /></PrivateRoute>} />
           <Route path="/servicios" element={<PrivateRoute><Servicios /></PrivateRoute>} />
           <Route path="/profesionales" element={<PrivateRoute><Profesionales /></PrivateRoute>} />
