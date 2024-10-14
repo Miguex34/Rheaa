@@ -191,7 +191,7 @@ const Servicios = () => {
             <h3 className="text-lg font-bold">{servicio.nombre}</h3>
             <p>{servicio.descripcion}</p>
             <p>Duración: {servicio.duracion} minutos</p>
-            <p>Precio: ${form.precio}</p>
+            <p>Precio: ${servicio.precio}</p>
             <div className="flex space-x-2">
               <button
                 onClick={() => handleEdit(servicio)}

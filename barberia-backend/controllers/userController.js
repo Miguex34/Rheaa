@@ -26,9 +26,7 @@ const register = async (req, res) => {
     if (emailExists) {
       return res.status(400).json({ message: 'El correo ya está en uso.' });
     }
-     // Verificar si el nombre del negocio ya está en uso
      
-
     // Crear el hash de la contraseña
     const hashedPassword = await bcrypt.hash(contraseña, 10);
 
@@ -43,7 +41,11 @@ const register = async (req, res) => {
 
     // Verifica si se crea el usuario correctamente
     console.log('Usuario creado:', nuevoUsuario);
-
+    // Verificar si el nombre del negocio ya está en uso
+    const negocioExists = await Negocio.findOne({ where: { nombre: nombreNegocio } });
+     if (negocioExists) {
+       return res.status(400).json({ message: 'El nombre del negocio ya está en uso.' });
+     }
     // Crear el negocio relacionado con el usuario
     const nuevoNegocio = await Negocio.create({
       nombre: nombreNegocio,
@@ -54,10 +56,7 @@ const register = async (req, res) => {
       correo: nuevoUsuario.correo,
       id_dueno: nuevoUsuario.id, 
     });
-    const negocioExists = await Negocio.findOne({ where: { nombre: nombreNegocio } });
-     if (negocioExists) {
-       return res.status(400).json({ message: 'El nombre del negocio ya está en uso.' });
-     }
+    
 
     // Crear la relación entre el usuario y el negocio (dueño de negocio)
     await DuenoNegocio.create({
