@@ -72,3 +72,20 @@ exports.createNegocio = async (req, res) => {
     res.status(500).json({ error: 'Error al crear el negocio' });
   }
 };
+
+exports.updateNegocio = async (req, res) => {
+  try {
+    const { tipoNegocio, numProfesionales, horario } = req.body;
+    const negocio = await Negocio.findByPk(req.user.id_negocio);
+
+    if (!negocio) {
+      return res.status(404).json({ message: 'Negocio no encontrado' });
+    }
+
+    await negocio.update({ tipoNegocio, numProfesionales, horario });
+    res.status(200).json({ message: 'Negocio actualizado exitosamente' });
+  } catch (error) {
+    console.error('Error al actualizar el negocio:', error);
+    res.status(500).json({ message: 'Error al actualizar el negocio' });
+  }
+};

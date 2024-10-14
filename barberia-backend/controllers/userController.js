@@ -121,8 +121,23 @@ const getUserById = async (req, res) => {
   }
 };
 
+const getLoggedUser = async (req, res) => {
+  try {
+    const usuario = await Usuario.findByPk(req.user.id); // Obtenemos el ID del usuario desde el token
+    if (!usuario) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    return res.status(200).json(usuario);
+  } catch (error) {
+    console.error('Error al obtener el usuario logeado:', error);
+    return res.status(500).json({ error: 'Error al obtener el usuario logeado' });
+  }
+};
+
 module.exports = {
   register,
   login,
   getUserById,
+  getLoggedUser,
 };

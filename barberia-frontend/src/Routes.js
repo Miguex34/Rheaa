@@ -6,6 +6,7 @@ import Register from './components/Register';
 import CrearNegocio from './components/CrearNegocio';
 import PanelReservas from './components/PanelReservas';
 import ProtectedRoute from './components/ProtectedRoute';
+import Cuenta from './components/Cuenta';
 
 const AppRoutes = () => {
   return (
@@ -15,8 +16,9 @@ const AppRoutes = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/crear-negocio" element={<ProtectedRoute component={CrearNegocio} />} />
         <Route path="/panel-reservas" element={<ProtectedRoute component={PanelReservas} />} />
+        <Route path="/cuenta" element={<ProtectedRoute component={Cuenta} />} />
         {/* Redirect to login if no route matches */}
-        <Route path="*" element={<Navigate to="/login" />} />
+        <Route path="*" element={<Navigate to="/cuenta" />} />
       </Routes>
     </Router>
   );

@@ -11,6 +11,7 @@ import Configuracion from './components/Configuracion';
 import Soporte from './components/Soporte';
 import Login from './components/Login';
 import Register from './components/Register';
+import Cuenta from './components/Cuenta';
 import './index.css';
 // Función PrivateRoute para proteger rutas
 const PrivateRoute = ({ children }) => {
@@ -30,16 +31,18 @@ const AppContent = () => {
       {showSidebar && <Sidebar tieneNegocio={tieneNegocio} />}
       <div className={`flex-grow p-4 ${showSidebar ? 'ml-64' : ''}`}>
         <Routes>
+          <Route path="/" element={<Navigate to="/Cuenta" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/panel-reservas" element={<PrivateRoute><PanelReservas /></PrivateRoute>} />
+          <Route path="/cuenta" element={<PrivateRoute><Cuenta /></PrivateRoute>} />
+          <Route path="/panel-reservas" element={<PrivateRoute><PanelReservas /></PrivateRoute>} />      
           <Route path="/servicios" element={<PrivateRoute><Servicios /></PrivateRoute>} />
           <Route path="/profesionales" element={<PrivateRoute><Profesionales /></PrivateRoute>} />
           <Route path="/notificaciones" element={<PrivateRoute><Notificaciones /></PrivateRoute>} />
           <Route path="/calendario" element={<PrivateRoute><Calendario /></PrivateRoute>} />
           <Route path="/configuracion" element={<PrivateRoute><Configuracion /></PrivateRoute>} />
           <Route path="/soporte" element={<PrivateRoute><Soporte /></PrivateRoute>} />
-          <Route path="*" element={<Navigate to={token ? "/panel-reservas" : "/login"} replace />} />
+          <Route path="*" element={<Navigate to={token ? "/" : "/login"} replace />} />
         </Routes>
       </div>
     </div>
