@@ -3,7 +3,13 @@ import axios from 'axios';
 
 const Servicios = () => {
   const [servicios, setServicios] = useState([]);
-  const [form, setForm] = useState({ nombre: '', descripcion: '', duracion: '', precio: '', disponible: true });
+  const [form, setForm] = useState({
+    nombre: '',
+    descripcion: '',
+    duracion: '',
+    precio: '',
+    disponible: true,
+  });
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [message, setMessage] = useState(null);
@@ -23,25 +29,59 @@ const Servicios = () => {
     }
   };
 
+  const formatPrecio = (value) => {
+    const numericValue = value.replace(/\D/g, '');
+    return new Intl.NumberFormat('es-CL').format(numericValue);
+  };
+
+  const parsePrecioToFloat = (formattedPrice) => {
+    const rawValue = formattedPrice.replace(/\./g, '');
+    return parseFloat(rawValue);
+  };
+
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    if (name === 'nombre' && !/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]*$/.test(value)) {
+      return;
+    }
+
+    if (name === 'duracion' && (!/^\d*$/.test(value) || value.length > 4)) {
+      return;
+    }
+
+    if (name === 'precio') {
+      setForm({ ...form, precio: formatPrecio(value) });
+      return;
+    }
+
+    if (name === 'descripcion' && value.length > 100) {
+      return;
+    }
+
+    setForm({ ...form, [name]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
+      const formData = {
+        ...form,
+        precio: parsePrecioToFloat(form.precio),
+      };
+
       if (isEditing) {
-        await axios.put(`http://localhost:5000/api/servicios/${editingId}`, form, {
+        await axios.put(`http://localhost:5000/api/servicios/${editingId}`, formData, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         });
         setMessage({ type: 'success', text: 'Servicio actualizado con éxito' });
       } else {
-        await axios.post('http://localhost:5000/api/servicios', form, {
+        await axios.post('http://localhost:5000/api/servicios', formData, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         });
         setMessage({ type: 'success', text: 'Servicio creado con éxito' });
       }
+
       setForm({ nombre: '', descripcion: '', duracion: '', precio: '', disponible: true });
       setIsEditing(false);
       fetchServicios();
@@ -52,9 +92,25 @@ const Servicios = () => {
   };
 
   const handleEdit = (servicio) => {
-    setForm(servicio);
+    setForm({
+      ...servicio,
+      precio: formatPrecio(servicio.precio.toString()),
+    });
     setIsEditing(true);
     setEditingId(servicio.id);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/servicios/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      setMessage({ type: 'success', text: 'Servicio eliminado con éxito' });
+      fetchServicios();
+    } catch (error) {
+      console.error('Error al eliminar el servicio:', error);
+      setMessage({ type: 'error', text: 'Error al eliminar el servicio' });
+    }
   };
 
   return (
@@ -69,6 +125,7 @@ const Servicios = () => {
           {message.text}
         </div>
       )}
+
       <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow-md space-y-4">
         <input
           type="text"
@@ -79,15 +136,18 @@ const Servicios = () => {
           className="w-full p-2 border rounded"
           required
         />
+
         <textarea
           name="descripcion"
-          placeholder="Descripción"
+          placeholder="Descripción (máx. 100 caracteres)"
           value={form.descripcion}
           onChange={handleChange}
           className="w-full p-2 border rounded"
+          maxLength="100"
         />
+
         <input
-          type="number"
+          type="text"
           name="duracion"
           placeholder="Duración (minutos)"
           value={form.duracion}
@@ -95,15 +155,20 @@ const Servicios = () => {
           className="w-full p-2 border rounded"
           required
         />
-        <input
-          type="number"
-          name="precio"
-          placeholder="Precio"
-          value={form.precio}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
-        />
+
+        <div className="relative">
+          <span className="absolute left-3 top-2 text-gray-500">$</span>
+          <input
+            type="text"
+            name="precio"
+            placeholder="Precio"
+            value={form.precio}
+            onChange={handleChange}
+            className="w-full p-2 pl-8 border rounded"
+            required
+          />
+        </div>
+
         <div className="flex items-center">
           <input
             type="checkbox"
@@ -113,6 +178,7 @@ const Servicios = () => {
           />
           <label className="ml-2">Disponible</label>
         </div>
+
         <button type="submit" className="bg-blue-500 text-white p-2 rounded w-full">
           {isEditing ? 'Actualizar Servicio' : 'Agregar Servicio'}
         </button>
@@ -125,13 +191,21 @@ const Servicios = () => {
             <h3 className="text-lg font-bold">{servicio.nombre}</h3>
             <p>{servicio.descripcion}</p>
             <p>Duración: {servicio.duracion} minutos</p>
-            <p>Precio: ${servicio.precio}</p>
-            <button
-              onClick={() => handleEdit(servicio)}
-              className="bg-yellow-500 text-white p-2 rounded mt-2"
-            >
-              Editar
-            </button>
+            <p>Precio: ${form.precio}</p>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => handleEdit(servicio)}
+                className="bg-yellow-500 text-white p-2 rounded"
+              >
+                Editar
+              </button>
+              <button
+                onClick={() => handleDelete(servicio.id)}
+                className="bg-red-500 text-white p-2 rounded"
+              >
+                Eliminar
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -140,3 +214,7 @@ const Servicios = () => {
 };
 
 export default Servicios;
+
+
+
+
