@@ -37,6 +37,10 @@ exports.createNegocio = async (req, res) => {
     console.error('Error al crear el negocio:', error);
     res.status(500).json({ error: 'Error al crear el negocio' });
   }
+  const negocioExists = await Negocio.findOne({ where: { nombre: nombreNegocio } });
+     if (negocioExists) {
+       return res.status(400).json({ message: 'El nombre del negocio ya está en uso.' });
+     }
 };
 
 
