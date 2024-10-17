@@ -1,5 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
+const Negocio = require('./Negocio');
+const DisponibilidadEmpleado = require('./DisponibilidadEmpleado');
 
 const Usuario = sequelize.define('Usuario', {
   nombre: {
@@ -44,5 +46,7 @@ const Usuario = sequelize.define('Usuario', {
   timestamps: false,
   tableName: 'usuario',
 });
+
+
 
 module.exports = Usuario;

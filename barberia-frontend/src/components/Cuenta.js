@@ -3,30 +3,29 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
 const Cuenta = () => {
   const navigate = useNavigate();
 
   // Estado para el usuario logeado
-  const [user, setUser] = useState({ nombre: '', correo: '' });
+  const [user, setUser] = useState({ nombre: '', correo: '', id_negocio: null });
 
-  // Estado para el formulario del negocio
-  const [form, setForm] = useState({
-    tipoNegocio: 'Barbería',
-    numProfesionales: '1 - 2',
-    horario: [
-      { dia: 'Lunes', desde: '08:00', hasta: '19:00', cerrado: false },
-      { dia: 'Martes', desde: '08:00', hasta: '19:00', cerrado: false },
-      { dia: 'Miércoles', desde: '08:00', hasta: '19:00', cerrado: false },
-      { dia: 'Jueves', desde: '08:00', hasta: '19:00', cerrado: false },
-    ],
-  });
+  // Estado para los horarios
+  const [horarios, setHorarios] = useState(
+    diasSemana.map((dia) => ({
+      dia: dia,
+      desde: '08:00',  // Asegúrate que estos valores sean strings
+      hasta: '19:00',
+      cerrado: false,
+    }))
+  );
 
-  // Obtener los datos del usuario logeado al cargar el componente
+  // Obtener el usuario logeado y su negocio al cargar el componente
   useEffect(() => {
     const token = localStorage.getItem('token');
-    console.log('Token:', token); // Verificar si el token existe
     if (!token) {
-      navigate('/login'); // Redirigir si no hay token
+      navigate('/login');
       return;
     }
   
@@ -34,38 +33,76 @@ const Cuenta = () => {
       .get('http://localhost:5000/api/users/me', {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((response) => setUser(response.data))
+      .then((response) => {
+        console.log('Usuario autenticado:', response.data); // Verifica datos
+        setUser(response.data);
+  
+        const negocio = response.data.negocio;
+        if (negocio && negocio.id) {
+          console.log('Cargando horarios para el negocio:', negocio.id);
+          fetchHorarios(negocio.id);
+        } else {
+          console.error('El usuario no tiene un negocio asociado:', negocio);
+          alert('No se encontró un negocio asociado. Verifica tus datos.');
+        }
+      })
       .catch((error) => {
         console.error('Error al obtener el usuario:', error);
-        navigate('/login'); // Redirigir si hay error
+        localStorage.removeItem('token');
+        navigate('/login');
       });
   }, [navigate]);
+  
+  
+
+  // Función para obtener los horarios desde el backend
+  const fetchHorarios = async (id_negocio) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/api/horarios/negocio/${id_negocio}`);
+      setHorarios(response.data); // Actualizar los horarios con los datos del backend
+    } catch (error) {
+      console.error('Error al obtener los horarios:', error);
+    }
+  };
 
   // Manejar cambios en los campos del formulario
   const handleChange = (e) => {
     const { name, value, dataset } = e.target;
-    if (dataset.index) {
-      const horario = [...form.horario];
-      horario[dataset.index][name] = name === 'cerrado' ? e.target.checked : value;
-      setForm({ ...form, horario });
-    } else {
-      setForm({ ...form, [name]: value });
-    }
+    const nuevosHorarios = [...horarios];
+  
+    nuevosHorarios[dataset.index][name] = 
+      value !== undefined ? value : '';  // Evita valores undefined
+  
+    setHorarios(nuevosHorarios);
   };
 
-  // Enviar los datos del formulario
+  // Enviar los datos del formulario al backend
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.put('http://localhost:5000/api/negocio', form, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      navigate('/dashboard');
+      
+      if (!user.id_negocio) {
+        alert('No se encontró un negocio asociado al usuario.');
+        return;
+      }
+  
+      // Enviar los horarios al backend con el id_negocio del usuario logeado
+      await axios.put(
+        `http://localhost:5000/api/horarios/negocio/${user.id_negocio}`,
+        { horario: horarios },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+  
+      alert('Horarios actualizados correctamente.');
+      fetchHorarios(user.id_negocio); // Recargar los horarios después de guardar
     } catch (error) {
-      console.error('Error al actualizar el negocio:', error);
+      console.error('Error al actualizar los horarios:', error);
     }
   };
+  
 
   return (
     <div className="p-8 bg-gray-100 min-h-screen">
@@ -76,38 +113,8 @@ const Cuenta = () => {
 
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md space-y-6">
         <div>
-          <label className="block font-semibold mb-2">Tipo de Negocio</label>
-          <select
-            name="tipoNegocio"
-            value={form.tipoNegocio}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          >
-            <option value="Barbería">Barbería</option>
-            <option value="Salón de Belleza">Salón de Belleza</option>
-            <option value="Spa">Spa</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block font-semibold mb-2">
-            ¿Cuántos Profesionales Atienden tu Negocio?
-          </label>
-          <select
-            name="numProfesionales"
-            value={form.numProfesionales}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          >
-            <option value="1 - 2">1 - 2</option>
-            <option value="2 - 4">2 - 4</option>
-            <option value="5 o más">5 o más</option>
-          </select>
-        </div>
-
-        <div>
           <label className="block font-semibold mb-2">Horario de Apertura</label>
-          {form.horario.map((dia, index) => (
+          {horarios.map((dia, index) => (
             <div key={index} className="flex items-center space-x-4 mb-2">
               <span className="w-20">{dia.dia}</span>
               <input
@@ -139,7 +146,6 @@ const Cuenta = () => {
             </div>
           ))}
         </div>
-
         <button type="submit" className="bg-purple-500 text-white px-4 py-2 rounded">
           Guardar Cambios
         </button>
@@ -149,4 +155,3 @@ const Cuenta = () => {
 };
 
 export default Cuenta;
-

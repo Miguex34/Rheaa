@@ -26,6 +26,10 @@ const register = async (req, res) => {
     if (emailExists) {
       return res.status(400).json({ message: 'El correo ya está en uso.' });
     }
+    const negocioExists = await Negocio.findOne({ where: { nombre: nombreNegocio } });
+     if (negocioExists) {
+       return res.status(400).json({ message: 'El nombre del negocio ya está en uso.' });
+     }
      
     // Crear el hash de la contraseña
     const hashedPassword = await bcrypt.hash(contraseña, 10);
@@ -42,10 +46,7 @@ const register = async (req, res) => {
     // Verifica si se crea el usuario correctamente
     console.log('Usuario creado:', nuevoUsuario);
     // Verificar si el nombre del negocio ya está en uso
-    const negocioExists = await Negocio.findOne({ where: { nombre: nombreNegocio } });
-     if (negocioExists) {
-       return res.status(400).json({ message: 'El nombre del negocio ya está en uso.' });
-     }
+    
     // Crear el negocio relacionado con el usuario
     const nuevoNegocio = await Negocio.create({
       nombre: nombreNegocio,
@@ -122,17 +123,34 @@ const getUserById = async (req, res) => {
 
 const getLoggedUser = async (req, res) => {
   try {
-    const usuario = await Usuario.findByPk(req.user.id); // Obtenemos el ID del usuario desde el token
+    const usuario = await Usuario.findOne({
+      where: { id: req.user.id },
+      include: {
+        model: Negocio,
+        as: 'negocio',
+        attributes: ['id', 'nombre', 'telefono'],
+      },
+    });
+
     if (!usuario) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    return res.status(200).json(usuario);
+    res.status(200).json({
+      id: usuario.id,
+      nombre: usuario.nombre,
+      correo: usuario.correo,
+      telefono: usuario.telefono,
+      negocio: usuario.negocio || {},
+    });
   } catch (error) {
     console.error('Error al obtener el usuario logeado:', error);
-    return res.status(500).json({ error: 'Error al obtener el usuario logeado' });
+    res.status(500).json({ error: 'Error al obtener el usuario logeado' });
   }
 };
+
+
+
 
 module.exports = {
   register,

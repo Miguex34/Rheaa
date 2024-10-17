@@ -1,14 +1,14 @@
-// backend/models/DisponibilidadEmpleado.js
+// backend/models/HorarioNegocio.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const DisponibilidadEmpleado = sequelize.define('Disponibilidad_Empleado', {
+const HorarioNegocio = sequelize.define('Horario_Negocio', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
   },
-  id_empleado: {
+  id_negocio: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
@@ -24,9 +24,14 @@ const DisponibilidadEmpleado = sequelize.define('Disponibilidad_Empleado', {
     type: DataTypes.TIME,
     allowNull: false,
   },
+  activo: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+  },
 }, {
   timestamps: false,
-  tableName: 'Disponibilidad_Empleado',
+  tableName: 'Horario_Negocio',
 });
 
-module.exports = DisponibilidadEmpleado;
+module.exports = HorarioNegocio;
+

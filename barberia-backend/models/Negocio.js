@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
-const Usuario = require('./Usuario'); // Asegúrate de importar el modelo Usuario
+const Usuario = require('./Usuario'); 
+const HorarioNegocio = require('./HorarioNegocio'); 
 
 const Negocio = sequelize.define('Negocio', {
   nombre: {
@@ -32,7 +33,7 @@ const Negocio = sequelize.define('Negocio', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Usuario',
+      model: 'usuario',
       key: 'id',
     },
   },
@@ -40,5 +41,7 @@ const Negocio = sequelize.define('Negocio', {
   timestamps: false,
   tableName: 'negocio',
 });
+
+
 
 module.exports = Negocio;

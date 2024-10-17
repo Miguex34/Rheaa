@@ -14,6 +14,7 @@ const Servicios = () => {
   const [editingId, setEditingId] = useState(null);
   const [message, setMessage] = useState(null);
 
+  // Obtener los servicios al cargar el componente
   useEffect(() => {
     fetchServicios();
   }, []);
@@ -23,93 +24,73 @@ const Servicios = () => {
       const response = await axios.get('http://localhost:5000/api/servicios', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-      setServicios(response.data);
+      setServicios(response.data); // Guardar los servicios obtenidos
     } catch (error) {
       console.error('Error al obtener los servicios:', error);
+      setMessage({ type: 'error', text: 'Error al obtener los servicios.' });
     }
-  };
-
-  const formatPrecio = (value) => {
-    const numericValue = value.replace(/\D/g, '');
-    return new Intl.NumberFormat('es-CL').format(numericValue);
-  };
-
-  const parsePrecioToFloat = (formattedPrice) => {
-    const rawValue = formattedPrice.replace(/\./g, '');
-    return parseFloat(rawValue);
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    if (name === 'nombre' && !/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]*$/.test(value)) {
-      return;
-    }
-
-    if (name === 'duracion' && (!/^\d*$/.test(value) || value.length > 4)) {
-      return;
-    }
+    // Validaciones específicas para cada campo
+    if (name === 'nombre' && !/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]*$/.test(value)) return;
+    if (name === 'duracion' && (!/^\d*$/.test(value) || value.length > 4)) return;
+    if (name === 'descripcion' && value.length > 100) return;
 
     if (name === 'precio') {
-      setForm({ ...form, precio: formatPrecio(value) });
-      return;
+      const numericValue = value.replace(/\D/g, '');
+      setForm({ ...form, precio: numericValue });
+    } else {
+      setForm({ ...form, [name]: value });
     }
-
-    if (name === 'descripcion' && value.length > 100) {
-      return;
-    }
-
-    setForm({ ...form, [name]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const formData = {
-        ...form,
-        precio: parsePrecioToFloat(form.precio),
-      };
+      const token = localStorage.getItem('token');
+      const formData = { ...form, precio: parseFloat(form.precio) };
 
       if (isEditing) {
         await axios.put(`http://localhost:5000/api/servicios/${editingId}`, formData, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
-        setMessage({ type: 'success', text: 'Servicio actualizado con éxito' });
+        setMessage({ type: 'success', text: 'Servicio actualizado con éxito.' });
       } else {
         await axios.post('http://localhost:5000/api/servicios', formData, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
-        setMessage({ type: 'success', text: 'Servicio creado con éxito' });
+        setMessage({ type: 'success', text: 'Servicio creado con éxito.' });
       }
 
       setForm({ nombre: '', descripcion: '', duracion: '', precio: '', disponible: true });
       setIsEditing(false);
-      fetchServicios();
+      fetchServicios(); // Recargar servicios
     } catch (error) {
       console.error('Error al guardar el servicio:', error);
-      setMessage({ type: 'error', text: 'Error al guardar el servicio' });
+      setMessage({ type: 'error', text: 'Error al guardar el servicio.' });
     }
   };
 
   const handleEdit = (servicio) => {
-    setForm({
-      ...servicio,
-      precio: formatPrecio(servicio.precio.toString()),
-    });
+    setForm(servicio);
     setIsEditing(true);
     setEditingId(servicio.id);
   };
 
   const handleDelete = async (id) => {
     try {
+      const token = localStorage.getItem('token');
       await axios.delete(`http://localhost:5000/api/servicios/${id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setMessage({ type: 'success', text: 'Servicio eliminado con éxito' });
-      fetchServicios();
+      setMessage({ type: 'success', text: 'Servicio eliminado con éxito.' });
+      fetchServicios(); // Recargar servicios
     } catch (error) {
       console.error('Error al eliminar el servicio:', error);
-      setMessage({ type: 'error', text: 'Error al eliminar el servicio' });
+      setMessage({ type: 'error', text: 'Error al eliminar el servicio.' });
     }
   };
 
@@ -136,7 +117,6 @@ const Servicios = () => {
           className="w-full p-2 border rounded"
           required
         />
-
         <textarea
           name="descripcion"
           placeholder="Descripción (máx. 100 caracteres)"
@@ -145,7 +125,6 @@ const Servicios = () => {
           className="w-full p-2 border rounded"
           maxLength="100"
         />
-
         <input
           type="text"
           name="duracion"
@@ -155,7 +134,6 @@ const Servicios = () => {
           className="w-full p-2 border rounded"
           required
         />
-
         <div className="relative">
           <span className="absolute left-3 top-2 text-gray-500">$</span>
           <input
@@ -168,7 +146,6 @@ const Servicios = () => {
             required
           />
         </div>
-
         <div className="flex items-center">
           <input
             type="checkbox"
@@ -178,7 +155,6 @@ const Servicios = () => {
           />
           <label className="ml-2">Disponible</label>
         </div>
-
         <button type="submit" className="bg-blue-500 text-white p-2 rounded w-full">
           {isEditing ? 'Actualizar Servicio' : 'Agregar Servicio'}
         </button>
@@ -214,7 +190,3 @@ const Servicios = () => {
 };
 
 export default Servicios;
-
-
-
-
