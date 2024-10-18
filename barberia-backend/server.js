@@ -50,14 +50,14 @@ const syncDatabase = async () => {
 
     await Usuario.sync({ force: false });
     await Negocio.sync({ force: false });
+    await Cliente.sync({ force: false });
     await EmpleadoNegocio.sync({ force: false });
+    await DuenoNegocio.sync({ force: false });
     await Servicio.sync({ force: false });
     await HorarioNegocio.sync({ force: false });
     await DisponibilidadEmpleado.sync({ force: false });
     await Reserva.sync({ force: false });
-    await DuenoNegocio.sync({ force: false });
     await Pago.sync({ force: false });
-    await Cliente.sync({ force: false });
 
     console.log('Tablas sincronizadas correctamente.');
   } catch (error) {
