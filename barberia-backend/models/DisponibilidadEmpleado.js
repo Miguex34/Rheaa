@@ -1,6 +1,7 @@
 // backend/models/DisponibilidadEmpleado.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
+const Usuario = require('./Usuario');
 
 const DisponibilidadEmpleado = sequelize.define('Disponibilidad_Empleado', {
   id: {
@@ -10,6 +11,10 @@ const DisponibilidadEmpleado = sequelize.define('Disponibilidad_Empleado', {
   },
   id_usuario: {
     type: DataTypes.BIGINT,
+    references: { 
+      model: 'usuario',
+      key: 'id',
+    },
     allowNull: false,
   },
   id_negocio: {
