@@ -17,7 +17,7 @@ const register = async (req, res) => {
     direccionNegocio,
     horario_inicio,
     horario_cierre,
-    rol, // Asegúrate de que el rol esté desestructurado
+    cargo, // Ahora cargo en lugar de rol
   } = req.body;
 
   try {
@@ -40,7 +40,7 @@ const register = async (req, res) => {
       correo,
       contrasena_hash: hashedPassword,
       telefono,
-      rol, // Asegúrate de incluir el rol aquí
+      cargo, // Asegúrate de incluir el rol aquí
     });
 
     // Verifica si se crea el usuario correctamente
@@ -61,7 +61,7 @@ const register = async (req, res) => {
 
     // Crear la relación entre el usuario y el negocio (dueño de negocio)
     await DuenoNegocio.create({
-      id_dueno: nuevoUsuario.id,
+      id_usuario: nuevoUsuario.id,
       id_negocio: nuevoNegocio.id,
     });
 

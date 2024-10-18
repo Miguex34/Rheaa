@@ -1,31 +1,40 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
-const Cita = require('./Cita');
+const Cita = require('./Reserva');
 
 const Pago = sequelize.define('Pago', {
-  id_cita: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: Cita,
-      key: 'id',
-    },
+  id: {
+    type: DataTypes.BIGINT,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  id_reserva: {
+    type: DataTypes.BIGINT,
     allowNull: false,
   },
   monto: {
-    type: DataTypes.DECIMAL(10, 2),
+    type: DataTypes.DECIMAL,
     allowNull: false,
   },
-  fecha_pago: {
+  fecha: {
     type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
+    allowNull: false,
+  },
+  metodo_pago: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
   },
   estado: {
-    type: DataTypes.ENUM('exitoso', 'fallido'),
+    type: DataTypes.STRING(50),
+    allowNull: false,
+  },
+  codigo_transaccion: {
+    type: DataTypes.STRING(100),
     allowNull: false,
   },
 }, {
-  tableName: 'pago',  // Cambia el nombre a singular
   timestamps: false,
+  tableName: 'pago',
 });
 
 module.exports = Pago;

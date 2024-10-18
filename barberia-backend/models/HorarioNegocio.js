@@ -4,12 +4,12 @@ const sequelize = require('../config/database');
 
 const HorarioNegocio = sequelize.define('Horario_Negocio', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
     primaryKey: true,
     autoIncrement: true,
   },
   id_negocio: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
     allowNull: false,
   },
   dia_semana: {

@@ -14,7 +14,7 @@ const Register = () => {
     direccionNegocio: '',
     horario_inicio: '',
     horario_cierre: '',
-    rol: 'dueño',
+    cargo: 'Dueño',
   });
 
   const [errors, setErrors] = useState({});

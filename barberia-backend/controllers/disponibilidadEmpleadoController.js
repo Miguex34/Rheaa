@@ -1,11 +1,11 @@
 const { DisponibilidadEmpleado } = require('../models/DisponibilidadEmpleado');
 
 exports.createDisponibilidad = async (req, res) => {
-  const { id_empleado, fecha, hora_inicio, hora_fin, disponible } = req.body;
+  const { id_usuario, fecha, hora_inicio, hora_fin, disponible } = req.body;
 
   try {
     const disponibilidad = await DisponibilidadEmpleado.create({
-      id_empleado,
+      id_usuario,
       fecha,
       hora_inicio,
       hora_fin,
@@ -19,7 +19,7 @@ exports.createDisponibilidad = async (req, res) => {
 
 exports.getDisponibilidadByEmpleado = async (req, res) => {
   try {
-    const disponibilidad = await DisponibilidadEmpleado.findAll({ where: { id_empleado: req.params.id_empleado } });
+    const disponibilidad = await DisponibilidadEmpleado.findAll({ where: { id_usuario: req.params.id_usuario } });
     res.json(disponibilidad);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener disponibilidad' });

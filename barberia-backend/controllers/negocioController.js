@@ -63,16 +63,6 @@ exports.getNegocioById  = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener los negocios' });
   }
 };
-
-exports.createNegocio = async (req, res) => {
-  try {
-    // Lógica para crear el negocio
-    res.status(201).json({ message: 'Negocio creado exitosamente' });
-  } catch (error) {
-    res.status(500).json({ error: 'Error al crear el negocio' });
-  }
-};
-
 exports.updateNegocio = async (req, res) => {
   try {
     const { tipoNegocio, numProfesionales, horario } = req.body;

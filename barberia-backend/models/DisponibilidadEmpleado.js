@@ -4,12 +4,16 @@ const sequelize = require('../config/database');
 
 const DisponibilidadEmpleado = sequelize.define('Disponibilidad_Empleado', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
     primaryKey: true,
     autoIncrement: true,
   },
-  id_empleado: {
-    type: DataTypes.INTEGER,
+  id_usuario: {
+    type: DataTypes.BIGINT,
+    allowNull: false,
+  },
+  id_negocio: {
+    type: DataTypes.BIGINT,
     allowNull: false,
   },
   dia_semana: {
@@ -24,9 +28,13 @@ const DisponibilidadEmpleado = sequelize.define('Disponibilidad_Empleado', {
     type: DataTypes.TIME,
     allowNull: false,
   },
+  disponible: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+  },
 }, {
   timestamps: false,
-  tableName: 'Disponibilidad_Empleado',
+  tableName: 'disponibilidad_empleado',
 });
 
 module.exports = DisponibilidadEmpleado;

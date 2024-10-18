@@ -9,21 +9,22 @@ const Negocio = require('./models/Negocio');
 const Servicio = require('./models/Servicio');
 const HorarioNegocio = require('./models/HorarioNegocio');
 const DisponibilidadEmpleado = require('./models/DisponibilidadEmpleado');
-const Cita = require('./models/Cita');
+const Reserva = require('./models/Reserva');
 const DuenoNegocio = require('./models/DuenoNegocio');
 const EmpleadoNegocio = require('./models/EmpleadoNegocio');
 const Pago = require('./models/Pago');
+const Cliente = require('./models/Cliente');
 
 
 // Importa tus rutas
 const userRoutes = require('./routes/userRoutes');
 const negocioRoutes = require('./routes/negocioRoutes');
-const citaRoutes = require('./routes/citaRoutes');
+const reservaRoutes = require('./routes/reservaRoutes');
 const empleadoRoutes = require('./routes/empleadoRoutes');
 const servicioRoutes = require('./routes/servicioRoutes');
 const pagoRoutes = require('./routes/pagoRoutes');
-const disponibilidadRoutes = require('./routes/disponibilidadRoutes');
 const horarioRoutes = require('./routes/horarioRoutes');
+const disponibilidadEmpleadoRoutes = require('./routes/disponibilidadEmpleadoRoutes');
 
 const app = express();
 
@@ -34,11 +35,11 @@ app.use(express.json());
 // Registrar las rutas
 app.use('/api/users', userRoutes);
 app.use('/api/negocios', negocioRoutes);
-app.use('/api/citas', citaRoutes);
+app.use('/api/reservas', reservaRoutes);
 app.use('/api/empleados', empleadoRoutes);
 app.use('/api/servicios', servicioRoutes);
 app.use('/api/pagos', pagoRoutes);
-app.use('/api/disponibilidad', disponibilidadRoutes);
+app.use('/api/disponibilidadEmpleado', disponibilidadEmpleadoRoutes);
 app.use('/api/horarios', horarioRoutes);
 
 // Función asincrónica para sincronizar la base de datos en el orden correcto
@@ -53,9 +54,10 @@ const syncDatabase = async () => {
     await Servicio.sync({ force: false });
     await HorarioNegocio.sync({ force: false });
     await DisponibilidadEmpleado.sync({ force: false });
-    await Cita.sync({ force: false });
+    await Reserva.sync({ force: false });
     await DuenoNegocio.sync({ force: false });
     await Pago.sync({ force: false });
+    await Cliente.sync({ force: false });
 
     console.log('Tablas sincronizadas correctamente.');
   } catch (error) {

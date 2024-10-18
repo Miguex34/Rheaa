@@ -4,6 +4,11 @@ const sequelize = require('../config/database');
 const Negocio = require('./Negocio');
 
 const Servicio = sequelize.define('Servicio', {
+  id: {
+    type: DataTypes.BIGINT,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   nombre: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -20,18 +25,16 @@ const Servicio = sequelize.define('Servicio', {
     type: DataTypes.FLOAT,
     allowNull: false,
   },
+  categoria: {
+    type: DataTypes.STRING(50),
+  },
   disponible: {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
   id_negocio: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
     allowNull: false,
-    references: {
-      model: Negocio,
-      key: 'id',
-    },
-    onDelete: 'CASCADE',
   },
 }, {
   tableName: 'servicio',

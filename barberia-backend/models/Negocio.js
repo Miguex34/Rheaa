@@ -4,6 +4,11 @@ const Usuario = require('./Usuario');
 const HorarioNegocio = require('./HorarioNegocio'); 
 
 const Negocio = sequelize.define('Negocio', {
+  id: {
+    type: DataTypes.BIGINT,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   nombre: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -29,13 +34,24 @@ const Negocio = sequelize.define('Negocio', {
     allowNull: false,
     unique: true,
   },
-  id_dueno: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'usuario',
-      key: 'id',
-    },
+  descripcion: {
+    type: DataTypes.TEXT,
+  },
+  activo: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+  },
+  logo: {
+    type: DataTypes.BLOB, // Ajusta según tu manejo de imágenes
+  },
+  categoria: {
+    type: DataTypes.STRING(100),
+  },
+  latitud: {
+    type: DataTypes.DECIMAL,
+  },
+  longitud: {
+    type: DataTypes.DECIMAL,
   },
 }, {
   timestamps: false,
