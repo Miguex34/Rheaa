@@ -43,6 +43,10 @@ const Usuario = sequelize.define('Usuario', {
     type: DataTypes.INTEGER,
     defaultValue: 0,
   },
+  token_registro: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
   token_recuperacion: {
     type: DataTypes.STRING(255),
   },
