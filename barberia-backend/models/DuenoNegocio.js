@@ -4,24 +4,21 @@ const Usuario = require('./Usuario');
 const Negocio = require('./Negocio');
 
 const DuenoNegocio = sequelize.define('DuenoNegocio', {
-  id_dueno: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: Usuario,
-      key: 'id',
-    },
+  id: {
+    type: DataTypes.BIGINT,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  id_usuario: {
+    type: DataTypes.BIGINT,
     allowNull: false,
   },
   id_negocio: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: Negocio,
-      key: 'id',
-    },
+    type: DataTypes.BIGINT,
     allowNull: false,
   },
 }, {
-  tableName: 'dueno_negocio',  // Nombre correcto en la base de datos
+  tableName: 'dueno_negocio',
   timestamps: false,
 });
 

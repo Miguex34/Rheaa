@@ -1,10 +1,13 @@
+// routes/userRoutes.js
 const express = require('express');
 const router = express.Router();
-const userController = require('../controllers/userController');
+const authMiddleware = require('../middleware/authMiddleware');
+const { register, login, getUserById, getLoggedUser } = require('../controllers/userController');
 
 // Rutas de usuario
-router.post('/register', userController.register);
-router.post('/login', userController.login);
-router.get('/:id', userController.getUserById);
+router.post('/register', register);
+router.post('/login', login);
+router.get('/me', authMiddleware, getLoggedUser); // Ruta /me antes de /:id
+router.get('/:id', getUserById);
 
 module.exports = router;

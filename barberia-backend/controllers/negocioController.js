@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 exports.createNegocio = async (req, res) => {
   try {
     const { nombre, telefono, direccion, horario_inicio, horario_cierre } = req.body;
-
+    const id_dueno = req.user.id; 
     // Obtener el correo del usuario desde el token decodificado
     const correo = req.user.correo;
     console.log('Correo del usuario:', correo); // Log del correo
@@ -19,6 +19,7 @@ exports.createNegocio = async (req, res) => {
       horario_inicio,
       horario_cierre,
       correo,
+      id_dueno,
     });
     console.log('Negocio creado:', negocio); // Log del negocio creado
 
@@ -36,6 +37,10 @@ exports.createNegocio = async (req, res) => {
     console.error('Error al crear el negocio:', error);
     res.status(500).json({ error: 'Error al crear el negocio' });
   }
+  const negocioExists = await Negocio.findOne({ where: { nombre: nombreNegocio } });
+     if (negocioExists) {
+       return res.status(400).json({ message: 'El nombre del negocio ya está en uso.' });
+     }
 };
 
 
@@ -58,12 +63,19 @@ exports.getNegocioById  = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener los negocios' });
   }
 };
-
-exports.createNegocio = async (req, res) => {
+exports.updateNegocio = async (req, res) => {
   try {
-    // Lógica para crear el negocio
-    res.status(201).json({ message: 'Negocio creado exitosamente' });
+    const { tipoNegocio, numProfesionales, horario } = req.body;
+    const negocio = await Negocio.findByPk(req.user.id_negocio);
+
+    if (!negocio) {
+      return res.status(404).json({ message: 'Negocio no encontrado' });
+    }
+
+    await negocio.update({ tipoNegocio, numProfesionales, horario });
+    res.status(200).json({ message: 'Negocio actualizado exitosamente' });
   } catch (error) {
-    res.status(500).json({ error: 'Error al crear el negocio' });
+    console.error('Error al actualizar el negocio:', error);
+    res.status(500).json({ message: 'Error al actualizar el negocio' });
   }
 };

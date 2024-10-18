@@ -1,7 +1,14 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
+const Usuario = require('./Usuario'); 
+const HorarioNegocio = require('./HorarioNegocio'); 
 
 const Negocio = sequelize.define('Negocio', {
+  id: {
+    type: DataTypes.BIGINT,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   nombre: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -25,11 +32,32 @@ const Negocio = sequelize.define('Negocio', {
   correo: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true, // Garantiza que `correo` sea único
+    unique: true,
+  },
+  descripcion: {
+    type: DataTypes.TEXT,
+  },
+  activo: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+  },
+  logo: {
+    type: DataTypes.BLOB, // Ajusta según tu manejo de imágenes
+  },
+  categoria: {
+    type: DataTypes.STRING(100),
+  },
+  latitud: {
+    type: DataTypes.DECIMAL,
+  },
+  longitud: {
+    type: DataTypes.DECIMAL,
   },
 }, {
-  tableName: 'negocio',  // Asegúrate de que el nombre coincide con la tabla en la base de datos
   timestamps: false,
+  tableName: 'negocio',
 });
+
+
 
 module.exports = Negocio;

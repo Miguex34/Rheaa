@@ -1,27 +1,32 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
-
-// Importa el modelo Negocio correctamente
 const Negocio = require('./Negocio');
+const DisponibilidadEmpleado = require('./DisponibilidadEmpleado');
 
-// Define el modelo Usuario
 const Usuario = sequelize.define('Usuario', {
+  id: {
+    type: DataTypes.BIGINT,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   nombre: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(100),
     allowNull: false,
   },
   correo: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(255),
     allowNull: false,
     unique: true,
   },
-  contrasena_hash: {
-    type: DataTypes.STRING,
+  contrasena_hash : {
+    type: DataTypes.STRING(255),
     allowNull: false,
   },
   telefono: {
-    type: DataTypes.STRING,
-    allowNull: true,
+    type: DataTypes.STRING(20),
+  },
+  cargo: {
+    type: DataTypes.STRING(50),  
   },
   creado_en: {
     type: DataTypes.DATE,
@@ -29,27 +34,25 @@ const Usuario = sequelize.define('Usuario', {
   },
   ultimo_login: {
     type: DataTypes.DATE,
-    allowNull: true,
-  },
-  intentos_fallidos: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
   },
   cuenta_bloqueada: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
-  rol: {
-    type: DataTypes.STRING,
-    allowNull: false,
+  intentos_fallidos: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
+  token_recuperacion: {
+    type: DataTypes.STRING(255),
+  },
+  foto_perfil: {
+    type: DataTypes.BLOB,
   },
 }, {
   timestamps: false,
   tableName: 'usuario',
 });
 
-// Definir la relación "uno a muchos" entre Usuario y Negocio
-Usuario.hasMany(Negocio, { foreignKey: 'id_dueno' });
-Negocio.belongsTo(Usuario, { foreignKey: 'id_dueno' });  // Relación inversa
-
 module.exports = Usuario;
+
