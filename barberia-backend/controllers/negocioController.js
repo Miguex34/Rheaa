@@ -1,17 +1,23 @@
 const { Negocio } = require('../models/Negocio'); // Asegúrate de que la ruta sea correcta
-const { DuenoNegocio } = require('../models/DuenoNegocio'); // Si tienes una tabla intermedia para la relación
+const { DuenoNegocio } = require('../models/DuenoNegocio'); // Tabla intermedia para la relación de Dueño-Negocio
 const jwt = require('jsonwebtoken');
 
-
+// Controlador para crear un nuevo negocio
 exports.createNegocio = async (req, res) => {
   try {
     const { nombre, telefono, direccion, horario_inicio, horario_cierre } = req.body;
-    const id_dueno = req.user.id; 
-    // Obtener el correo del usuario desde el token decodificado
-    const correo = req.user.correo;
-    console.log('Correo del usuario:', correo); // Log del correo
+    const id_dueno = req.user.id; // ID del usuario dueño desde el token
+    const correo = req.user.correo; // Obtener el correo del usuario desde el token
 
-    // Crear el negocio con el correo del usuario
+    console.log('Correo del usuario:', correo);
+
+    // Verificar si el nombre del negocio ya está en uso
+    const negocioExists = await Negocio.findOne({ where: { nombre } });
+    if (negocioExists) {
+      return res.status(400).json({ message: 'El nombre del negocio ya está en uso.' });
+    }
+
+    // Crear el negocio con los datos proporcionados
     const negocio = await Negocio.create({
       nombre,
       telefono,
@@ -21,31 +27,23 @@ exports.createNegocio = async (req, res) => {
       correo,
       id_dueno,
     });
-    console.log('Negocio creado:', negocio); // Log del negocio creado
+    console.log('Negocio creado:', negocio);
 
     // Relacionar el negocio con el dueño
     const relacionDuenoNegocio = await DuenoNegocio.create({
-      id_dueno: req.user.id, // Obtener el ID del usuario logeado
+      id_dueno: req.user.id,
       id_negocio: negocio.id,
     });
-    console.log('Relación Dueño-Negocio creada:', relacionDuenoNegocio); // Log de la relación creada
-    console.log('Datos del negocio antes de crear:', { nombre, telefono, direccion, horario_inicio, horario_cierre, correo });
+    console.log('Relación Dueño-Negocio creada:', relacionDuenoNegocio);
 
-
-    res.json(negocio); // Respuesta con el negocio creado
+    res.json(negocio); // Devolver el negocio creado en la respuesta
   } catch (error) {
     console.error('Error al crear el negocio:', error);
     res.status(500).json({ error: 'Error al crear el negocio' });
   }
-  const negocioExists = await Negocio.findOne({ where: { nombre: nombreNegocio } });
-     if (negocioExists) {
-       return res.status(400).json({ message: 'El nombre del negocio ya está en uso.' });
-     }
 };
 
-
-
-
+// Controlador para obtener todos los negocios
 exports.getAllNegocios = async (req, res) => {
   try {
     const negocios = await Negocio.findAll();
@@ -55,18 +53,27 @@ exports.getAllNegocios = async (req, res) => {
   }
 };
 
-exports.getNegocioById  = async (req, res) => {
+// Controlador para obtener un negocio por su ID
+exports.getNegocioById = async (req, res) => {
   try {
-    // Lógica para obtener los negocios
-    res.status(200).json({ message: 'Negocios obtenidos exitosamente' });
+    const { id } = req.params;
+    const negocio = await Negocio.findByPk(id);
+
+    if (!negocio) {
+      return res.status(404).json({ message: 'Negocio no encontrado' });
+    }
+
+    res.status(200).json(negocio);
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener los negocios' });
+    res.status(500).json({ error: 'Error al obtener el negocio' });
   }
 };
+
+// Controlador para actualizar los datos de un negocio
 exports.updateNegocio = async (req, res) => {
   try {
     const { tipoNegocio, numProfesionales, horario } = req.body;
-    const negocio = await Negocio.findByPk(req.user.id_negocio);
+    const negocio = await Negocio.findByPk(req.user.id_negocio); // Usar el ID del negocio asociado al usuario logeado
 
     if (!negocio) {
       return res.status(404).json({ message: 'Negocio no encontrado' });

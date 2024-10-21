@@ -26,11 +26,12 @@ const register = async (req, res) => {
     if (emailExists) {
       return res.status(400).json({ message: 'El correo ya está en uso.' });
     }
+
     const negocioExists = await Negocio.findOne({ where: { nombre: nombreNegocio } });
-     if (negocioExists) {
-       return res.status(400).json({ message: 'El nombre del negocio ya está en uso.' });
-     }
-     
+    if (negocioExists) {
+      return res.status(400).json({ message: 'El nombre del negocio ya está en uso.' });
+    }
+
     // Crear el hash de la contraseña
     const hashedPassword = await bcrypt.hash(contraseña, 10);
 
@@ -43,10 +44,8 @@ const register = async (req, res) => {
       cargo, // Asegúrate de incluir el rol aquí
     });
 
-    // Verifica si se crea el usuario correctamente
     console.log('Usuario creado:', nuevoUsuario);
-    // Verificar si el nombre del negocio ya está en uso
-    
+
     // Crear el negocio relacionado con el usuario
     const nuevoNegocio = await Negocio.create({
       nombre: nombreNegocio,
@@ -55,9 +54,8 @@ const register = async (req, res) => {
       horario_inicio,
       horario_cierre,
       correo: nuevoUsuario.correo,
-      id_dueno: nuevoUsuario.id, 
+      id_dueno: nuevoUsuario.id,
     });
-    
 
     // Crear la relación entre el usuario y el negocio (dueño de negocio)
     await DuenoNegocio.create({
@@ -73,7 +71,6 @@ const register = async (req, res) => {
     return res.status(201).json({ message: 'Usuario y negocio creados con éxito', token });
   } catch (error) {
     console.error('Error al registrar el usuario y crear el negocio:', error);
-    console.log('Detalles del error:', error.errors); // Imprimir detalles de errores específicos
     return res.status(500).json({ error: 'Error en el registro', detalle: error.message });
   }
 };
@@ -121,6 +118,7 @@ const getUserById = async (req, res) => {
   }
 };
 
+// Función para obtener el usuario logeado
 const getLoggedUser = async (req, res) => {
   try {
     const usuario = await Usuario.findOne({
@@ -148,9 +146,6 @@ const getLoggedUser = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener el usuario logeado' });
   }
 };
-
-
-
 
 module.exports = {
   register,

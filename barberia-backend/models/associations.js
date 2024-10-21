@@ -1,4 +1,3 @@
-// backend/models/associations.js
 const Usuario = require('./Usuario');
 const Negocio = require('./Negocio');
 const Servicio = require('./Servicio');
@@ -10,7 +9,7 @@ const DuenoNegocio = require('./DuenoNegocio');
 const Pago = require('./Pago');
 const Cliente = require('./Cliente');
 
-// Asociación: Un Usuario tiene un Negocio
+// Asociación: Un Usuario tiene un Negocio (Dueño)
 Usuario.hasOne(Negocio, { foreignKey: 'id_dueno', as: 'negocio' });
 Negocio.belongsTo(Usuario, { foreignKey: 'id_dueno', as: 'dueno' });
 
@@ -22,7 +21,7 @@ Servicio.belongsTo(Negocio, { foreignKey: 'id_negocio' });
 Negocio.hasMany(HorarioNegocio, { foreignKey: 'id_negocio', as: 'horarios' });
 HorarioNegocio.belongsTo(Negocio, { foreignKey: 'id_negocio', as: 'negocio' });
 
-// Asociación: Un Usuario tiene Disponibilidad de Empleado (cambio id_empleado -> id_usuario)
+// Asociación: Un Usuario tiene Disponibilidad de Empleado (id_usuario)
 Usuario.hasMany(DisponibilidadEmpleado, { foreignKey: 'id_usuario', as: 'disponibilidades' });
 DisponibilidadEmpleado.belongsTo(Usuario, { foreignKey: 'id_usuario' });
 
@@ -30,7 +29,7 @@ DisponibilidadEmpleado.belongsTo(Usuario, { foreignKey: 'id_usuario' });
 Negocio.hasMany(EmpleadoNegocio, { foreignKey: 'id_negocio', as: 'empleados' });
 EmpleadoNegocio.belongsTo(Negocio, { foreignKey: 'id_negocio' });
 
-// Asociación: Un Usuario pertenece a muchos Negocios (Dueño)
+// Asociación: Un Usuario pertenece a muchos Negocios (Dueño a través de DuenoNegocio)
 Usuario.belongsToMany(Negocio, { through: DuenoNegocio, as: 'negocios', foreignKey: 'id_usuario' });
 Negocio.belongsToMany(Usuario, { through: DuenoNegocio, as: 'duenos', foreignKey: 'id_negocio' });
 
@@ -38,8 +37,7 @@ Negocio.belongsToMany(Usuario, { through: DuenoNegocio, as: 'duenos', foreignKey
 Servicio.hasMany(Reserva, { foreignKey: 'id_servicio', as: 'reservas' });
 Reserva.belongsTo(Servicio, { foreignKey: 'id_servicio' });
 
-
-// Asociación: Un Cliente puede tener muchas Reservas
+// Asociación: Un Cliente puede tener muchas Reservas (tabla Cliente)
 Cliente.hasMany(Reserva, { foreignKey: 'id_cliente', as: 'reservas' });
 Reserva.belongsTo(Cliente, { foreignKey: 'id_cliente' });
 
@@ -55,10 +53,9 @@ Reserva.belongsTo(EmpleadoNegocio, { foreignKey: 'id_empleado' });
 Reserva.hasOne(Pago, { foreignKey: 'id_reserva', as: 'pago' });
 Pago.belongsTo(Reserva, { foreignKey: 'id_reserva' });
 
-// Asociación: Un Cliente puede tener muchas Reservas
+// Usuario también puede tener muchas Reservas (si es cliente o hace la reserva)
 Usuario.hasMany(Reserva, { foreignKey: 'id_cliente', as: 'reservas' });
 Reserva.belongsTo(Usuario, { foreignKey: 'id_cliente' });
-
 
 module.exports = {
   Usuario,
@@ -71,6 +68,6 @@ module.exports = {
   DuenoNegocio,
   Reserva,
   Pago,
-  
 };
+
 
