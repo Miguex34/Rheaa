@@ -3,6 +3,17 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+const categorias = [
+  'Barbería', 
+  'salón de manicura y pedicura', 
+  'Spa', 
+  'Masajes', 
+  'Peluquería', 
+  'Centro de Estética', 
+  'Salón de Belleza', 
+  'Depilación',
+  'Tratamientos Faciales'
+];
 
 const Cuenta = () => {
   const navigate = useNavigate();
@@ -12,6 +23,9 @@ const Cuenta = () => {
 
   // Estado para los horarios, inicializado como un array vacío por defecto
   const [horarios, setHorarios] = useState([]);
+
+  // Estado para la categoría seleccionada
+  const [categoria, setCategoria] = useState('');
 
   // Obtener el usuario logeado y su negocio al cargar el componente
   useEffect(() => {
@@ -33,6 +47,7 @@ const Cuenta = () => {
         if (negocio && negocio.id) {
           console.log('Cargando horarios para el negocio:', negocio.id);
           fetchHorarios(negocio.id);
+          setCategoria(negocio.categoria || ''); // Establecer la categoría si ya existe
         } else {
           console.error('El usuario no tiene un negocio asociado:', negocio);
           alert('No se encontró un negocio asociado. Verifica tus datos.');
@@ -85,24 +100,78 @@ const Cuenta = () => {
     setHorarios(nuevosHorarios);
   };
 
-  // Enviar los datos del formulario al backend
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // Manejar cambio de la categoría seleccionada
+  const handleCategoriaChange = async (e) => {
+    const nuevaCategoria = e.target.value;
+    setCategoria(nuevaCategoria);
+  
     try {
       const token = localStorage.getItem('token');
-      
-      if (!user.negocio.id) {
+  
+      if (!user.negocio || !user.negocio.id) {
         alert('No se encontró un negocio asociado al usuario.');
         return;
       }
   
+      // Enviar la categoría al backend
+      await axios.put(
+        `http://localhost:5000/api/negocios/${user.negocio.id}/categoria`,
+        { categoria: nuevaCategoria },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+  
+      alert('Categoría actualizada correctamente.');
+    } catch (error) {
+      console.error('Error al actualizar la categoría:', error);
+    }
+  };
+
+  // Enviar la categoría al backend
+  const handleCategoriaSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+
+      if (!user.negocio.id) {
+        alert('No se encontró un negocio asociado al usuario.');
+        return;
+      }
+
+      // Enviar la categoría al backend
+      await axios.put(
+        `http://localhost:5000/api/negocios/${user.negocio.id}`,
+        { categoria },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      alert('Categoría actualizada correctamente.');
+    } catch (error) {
+      console.error('Error al actualizar la categoría:', error);
+    }
+  };
+
+  // Enviar los datos del formulario de horarios al backend
+  const handleHorarioSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+
+      if (!user.negocio.id) {
+        alert('No se encontró un negocio asociado al usuario.');
+        return;
+      }
+
       const horariosFormateados = horarios.map(h => ({
         dia: h.dia,
         desde: h.desde,
         hasta: h.hasta,
         cerrado: h.cerrado
       }));
-  
+
       const response = await axios.put(
         `http://localhost:5000/api/horarios/negocio/${user.negocio.id}`,
         { horario: horariosFormateados },
@@ -110,20 +179,18 @@ const Cuenta = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-  
+
       alert('Horarios actualizados correctamente.');
-  
+
       // Verifica si `response.data` es un array
       if (Array.isArray(response.data)) {
-        // Formatear los datos del backend a la estructura del frontend
         const horariosActualizados = response.data.map(h => ({
           dia: h.dia_semana,
           desde: h.hora_inicio,
           hasta: h.hora_fin,
           cerrado: !h.activo,
         }));
-  
-        // Actualizar los horarios en el estado
+
         setHorarios(horariosActualizados);
       } else {
         console.error('La respuesta del servidor no es un array:', response.data);
@@ -141,7 +208,27 @@ const Cuenta = () => {
       </h1>
       <p className="mb-8">Comencemos con el proceso de completar la información de tu negocio.</p>
 
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md space-y-6">
+      {/* Formulario para categoría */}
+      <form className="bg-white p-6 rounded shadow-md space-y-6 mb-6">
+  <div>
+    <label className="block font-semibold mb-2">Tipo de Negocio</label>
+    <select
+      value={categoria}
+      onChange={handleCategoriaChange}  // Llamamos directamente a la función al cambiar la categoría
+      className="p-2 border rounded w-full bg-gray-100"
+    >
+      <option value="">Selecciona una categoría</option>
+      {categorias.map((cat, index) => (
+        <option key={index} value={cat}>
+          {cat}
+        </option>
+      ))}
+    </select>
+  </div>
+</form>
+
+      {/* Formulario para horario */}
+      <form onSubmit={handleHorarioSubmit} className="bg-white p-6 rounded shadow-md space-y-6">
         <div>
           <label className="block font-semibold mb-2">Horario de Apertura</label>
           {Array.isArray(horarios) && horarios.length > 0 && horarios.map((dia, index) => (
@@ -177,7 +264,7 @@ const Cuenta = () => {
           ))}
         </div>
         <button type="submit" className="bg-purple-500 text-white px-4 py-2 rounded">
-          Guardar Cambios
+          Guardar Horarios
         </button>
       </form>
     </div>
@@ -185,3 +272,4 @@ const Cuenta = () => {
 };
 
 export default Cuenta;
+
