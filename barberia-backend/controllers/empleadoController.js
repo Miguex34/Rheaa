@@ -1,4 +1,5 @@
 const { EmpleadoNegocio } = require('../models/EmpleadoNegocio');
+const { negocio } = require('../models/Negocio');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const db = require('../config/database');
@@ -41,8 +42,23 @@ exports.getEmpleadoById = async (req, res) => {
 
 // Funciones para creación de empleados por correo
 exports.crearEmpleado = async (req, res) => {
-  const { correo, id_negocio } = req.body;
+  const { correo } = req.body;
   try {
+    // Obtener el id del dueño de la sesión
+    //const id_dueno = req.user.id; // Asumimos que el dueño está autenticado y su id está disponible en req.user
+    const id_dueno = 1; // Hardcodeado para pruebas BORRAR DESPUES
+    // Buscar el negocio asociado al dueño, incluyendo su name
+    const [negocio] = await db.query('SELECT id, nombre FROM negocio WHERE id_dueno = :id_dueno', {
+      replacements: { id_dueno },
+      type: db.QueryTypes.SELECT
+    });
+
+    if (!negocio) {
+      return res.status(400).json({ message: 'Negocio no encontrado para el dueño actual.' });
+    }
+
+    const id_negocio = negocio.id;
+
     // Verificar si el empleado ya tiene una cuenta
     const userExists = await db.query(
       'SELECT * FROM usuario WHERE correo = :correo',
@@ -57,9 +73,10 @@ exports.crearEmpleado = async (req, res) => {
     // Crear un token aleatorio para un usuario con nombre generico
     // Crear un token de contraseña hash temporal
     const token = crypto.randomBytes(32).toString('hex');
-    const temporaryPasswordHash = await bcrypt.hash('temporal', 10);  // Contraseña temporal
+    const temporaryPasswordHash = await bcrypt.hash('temporal', 10);
+
     // Crear un nuevo usuario con el token y la contraseña temporal
-    const newUser = await db.query(
+    const [newUser] = await db.query(
       'INSERT INTO usuario (nombre, correo, contrasena_hash, token_registro, cuenta_bloqueada, creado_en) VALUES (:nombre, :correo, :contrasena_hash, :token, :cuenta_bloqueada, NOW())',
       {
         replacements: { 
@@ -71,31 +88,33 @@ exports.crearEmpleado = async (req, res) => {
         }
       }
     );
-    const id_usuario = newUser.insertId;
-    // Obtener el nombre del negocio para el correo
-    const [negocio] = await db.query('SELECT nombre FROM negocio WHERE id = :id_negocio', {
-      replacements: { id_negocio },
-      type: db.QueryTypes.SELECT
-    });
-    const nombreNegocio = negocio.nombre;
-    // Enviar correo con el token
-    const verificationLink = `http://localhost:5000/api/empleados/registro/${token}`;
-    // Datos dinámicos para la plantilla de SendGrid
-    const dynamicData = {
-      nombre: 'Usuario Temporal',
-      nombre_negocio: nombreNegocio, // Nombre del negocio
-      link_registro: verificationLink // Enlace de registro
+    const id_usuario = newUser;
+    
+    // Asignar el empleado a empleado_negocio
+    await db.query(
+      'INSERT INTO empleado_negocio (id_usuario, id_negocio) VALUES (:id_usuario, :id_negocio)',
+      {
+        replacements: { id_usuario, id_negocio }
+      }
+    );
+
+    // Enviar correo con el token de registro
+    const verificationLink = `http://localhost:3000/registro/${token}`;
+    const emailContent = {
+      link_registro: verificationLink, 
+      nombre_negocio: negocio.nombre 
     };
+
     // ID de la plantilla de SendGrid
-    const templateId = 'd-c95ad51a50de4de8bc649de798c7c872';
-    // Enviar correo usando la plantilla de SendGrid
-    await sendEmail(correo, templateId, dynamicData);
+    await sendEmail(correo, 'd-c95ad51a50de4de8bc649de798c7c872', emailContent);
+
     res.status(200).json({ message: 'Correo enviado al empleado.' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error al crear empleado.' });
   }
 };
+
 exports.mostrarFormularioRegistro = async (req, res) => {
   const { token } = req.params;
   try {
@@ -112,19 +131,43 @@ exports.mostrarFormularioRegistro = async (req, res) => {
     res.status(500).json({ message: 'Error al verificar token.' });
   }
 };
+
 exports.completarRegistroEmpleado = async (req, res) => {
   const { token } = req.params;
-  const { nombre, contraseña, telefono, cargo, id_negocio } = req.body;
+  const { nombre, contraseña, telefono, cargo, disponibilidad } = req.body;
   try {
+
+    //Buscar el usuario con el token
     const [user] = await db.query('SELECT * FROM usuario WHERE token_registro = :token', {
       replacements: { token },
       type: db.QueryTypes.SELECT
     });
-    if (!user) {
-      return res.status(400).json({ message: 'Token inválido.' });
+
+    // comprobar si el usuario existe y no tiene id
+    if (!user || !user.id) {
+      console.log("Usuario no encontrado o sin ID:", user); // Borrar después
+      return res.status(400).json({ message: 'Token inválido o usuario no encontrado.' });
     }
     const id_usuario = user.id;
+
+    //Buscar el id_negocio relacionado con ese usuario en la tabla empleado_negocio
+    const [negocio] = await db.query(
+      'SELECT id_negocio FROM empleado_negocio WHERE id_usuario = :id_usuario',
+      {
+        replacements: { id_usuario },
+        type: db.QueryTypes.SELECT
+      }
+    );
+
+    if (!negocio || !negocio.id_negocio) {
+      return res.status(400).json({ message: 'No se encontró el negocio asociado al empleado.' });
+    }
+    const id_negocio = negocio.id_negocio;
+
+    //Hashear la contraseña temporal
     const hashedPassword = await bcrypt.hash(contraseña, 10);
+
+    //Actualizar los datos del usuario
     await db.query(
       'UPDATE usuario SET nombre = :nombre, contrasena_hash = :hashedPassword, telefono = :telefono, cargo = :cargo,  cuenta_bloqueada = false WHERE id = :id_usuario',
       {
@@ -137,13 +180,46 @@ exports.completarRegistroEmpleado = async (req, res) => {
         }
       }
     );
-    await db.query(
-      'INSERT INTO empleado_negocio (id_usuario, id_negocio) VALUES (:id_usuario, :id_negocio)',
-      {
-        replacements: { id_usuario, id_negocio }
+    
+    // Borrar la disponibilidad anterior si existía
+    await db.query('DELETE FROM disponibilidad_empleado WHERE id_usuario = :id_usuario', {
+      replacements: { id_usuario },
+      type: db.QueryTypes.DELETE
+    });
+
+    // Asegurarse de que la disponibilidad está presente
+    if (!disponibilidad) {
+      return res.status(400).json({ message: 'La disponibilidad es requerida.' });
+    }
+
+    // Guardar la disponibilidad del empleado por día
+    const dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+
+     // Verificar disponibilidad en consola BORRAR DESPUES
+     console.log('Disponibilidad recibida:', disponibilidad); //BORRAR DESPUES
+
+    for (const dia of dias) {
+      const diaDisponibilidad = disponibilidad[dia];
+
+      // Solo insertar cuando "disponible" es true, y las horas no sean vacías
+      if (diaDisponibilidad && diaDisponibilidad.disponible && diaDisponibilidad.hora_inicio && diaDisponibilidad.hora_fin) {
+        await db.query(
+          'INSERT INTO disponibilidad_empleado (id_usuario, id_negocio, dia_semana, hora_inicio, hora_fin, disponible) VALUES (:id_usuario, :id_negocio, :dia_semana, :hora_inicio, :hora_fin, :disponible)',
+          {
+            replacements: {
+              id_usuario,
+              id_negocio,
+              dia_semana: dia,
+              hora_inicio: diaDisponibilidad.hora_inicio,
+              hora_fin: diaDisponibilidad.hora_fin,
+              disponible: diaDisponibilidad.disponible ? 1 : 0
+            }
+          }
+        );
       }
-    );
-    res.status(200).json({ message: 'Registro completado con éxito.' });
+    }
+
+    res.status(200).json({ message: 'Registro completado con éxito y disponibilidad guardada.' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error al completar el registro.' });
