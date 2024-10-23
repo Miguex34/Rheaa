@@ -7,13 +7,16 @@ const Modal = ({ closeModal }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem('token'); // Obtener el token de localStorage
+
     try {
       const response = await fetch('http://localhost:5000/api/empleados/crear', { //ruta de crear empleado
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ correo: email }), // Solo envías el correo
+        body: JSON.stringify({ correo: email }), // Solo envíamos el correo
       });
 
       const data = await response.json();
