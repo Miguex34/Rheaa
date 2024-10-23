@@ -4,6 +4,8 @@ const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const db = require('../config/database');
 const sendEmail = require('../utils/sendEmail');
+const dayjs = require('dayjs');
+
 
 exports.createEmpleado = async (req, res) => {
   const { id_usuario, id_negocio, cargo } = req.body;
@@ -43,13 +45,20 @@ exports.getEmpleadoById = async (req, res) => {
 // Funciones para creación de empleados por correo
 exports.crearEmpleado = async (req, res) => {
   const { correo } = req.body;
+
+  // Verificar si req.user tiene los datos correctos
+  if (!req.user || !req.user.id) {
+    // Cambio: Verificación adicional para asegurar que req.user exista
+    return res.status(401).json({ message: 'Usuario no autenticado.' });
+  }
+
   try {
-    // Obtener el id del dueño de la sesión
-    //const id_dueno = req.user.id; // Asumimos que el dueño está autenticado y su id está disponible en req.user
-    const id_dueno = 1; // Hardcodeado para pruebas BORRAR DESPUES
-    // Buscar el negocio asociado al dueño, incluyendo su name
+    // Obtener el id del dueño de la sesión (verificado desde req.user por el authMiddleware)
+    const id_dueno = req.user.id;
+
+    // Buscar el negocio asociado al dueño autenticado
     const [negocio] = await db.query('SELECT id, nombre FROM negocio WHERE id_dueno = :id_dueno', {
-      replacements: { id_dueno },
+      replacements: { id_dueno }, // Cambio: Usamos el id del dueño autenticado para buscar el negocio
       type: db.QueryTypes.SELECT
     });
 
@@ -67,6 +76,7 @@ exports.crearEmpleado = async (req, res) => {
         type: db.QueryTypes.SELECT
       }
     );
+
     if (userExists.length > 0) {
       return res.status(400).json({ message: 'El empleado ya tiene una cuenta.' });
     }
@@ -145,7 +155,6 @@ exports.completarRegistroEmpleado = async (req, res) => {
 
     // comprobar si el usuario existe y no tiene id
     if (!user || !user.id) {
-      console.log("Usuario no encontrado o sin ID:", user); // Borrar después
       return res.status(400).json({ message: 'Token inválido o usuario no encontrado.' });
     }
     const id_usuario = user.id;
@@ -195,28 +204,28 @@ exports.completarRegistroEmpleado = async (req, res) => {
     // Guardar la disponibilidad del empleado por día
     const dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
 
-     // Verificar disponibilidad en consola BORRAR DESPUES
-     console.log('Disponibilidad recibida:', disponibilidad); //BORRAR DESPUES
-
+    // Guardar la disponibilidad del empleado por cada día
     for (const dia of dias) {
-      const diaDisponibilidad = disponibilidad[dia];
+      const diaDisponibilidad = disponibilidad[dia] || { disponible: false, hora_inicio: '00:00:00', hora_fin: '00:00:00' };
 
-      // Solo insertar cuando "disponible" es true, y las horas no sean vacías
-      if (diaDisponibilidad && diaDisponibilidad.disponible && diaDisponibilidad.hora_inicio && diaDisponibilidad.hora_fin) {
-        await db.query(
-          'INSERT INTO disponibilidad_empleado (id_usuario, id_negocio, dia_semana, hora_inicio, hora_fin, disponible) VALUES (:id_usuario, :id_negocio, :dia_semana, :hora_inicio, :hora_fin, :disponible)',
-          {
-            replacements: {
-              id_usuario,
-              id_negocio,
-              dia_semana: dia,
-              hora_inicio: diaDisponibilidad.hora_inicio,
-              hora_fin: diaDisponibilidad.hora_fin,
-              disponible: diaDisponibilidad.disponible ? 1 : 0
-            }
+      // Convertir las horas al formato adecuado (solo HH:mm:ss)
+      const hora_inicio = diaDisponibilidad.hora_inicio ? dayjs(diaDisponibilidad.hora_inicio).format('HH:mm:ss') : '00:00:00';
+      const hora_fin = diaDisponibilidad.hora_fin ? dayjs(diaDisponibilidad.hora_fin).format('HH:mm:ss') : '00:00:00';
+
+      // Insertar cada día en la base de datos, aunque no esté disponible
+      await db.query(
+        'INSERT INTO disponibilidad_empleado (id_usuario, id_negocio, dia_semana, hora_inicio, hora_fin, disponible) VALUES (:id_usuario, :id_negocio, :dia_semana, :hora_inicio, :hora_fin, :disponible)',
+        {
+          replacements: {
+            id_usuario,
+            id_negocio,
+            dia_semana: dia,
+            hora_inicio,
+            hora_fin,
+            disponible: diaDisponibilidad.disponible ? 1 : 0 // disponible = 0 si no está disponible
           }
-        );
-      }
+        }
+      );
     }
 
     res.status(200).json({ message: 'Registro completado con éxito y disponibilidad guardada.' });
