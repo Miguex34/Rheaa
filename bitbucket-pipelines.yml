@@ -1,0 +1,12 @@
+image: node:14
+
+pipelines:
+  branches:
+    main:
+      - step:
+          name: Deploy to Azure
+          script:
+            - npm install
+            - npm run build
+            - az login --access-token $AZURE_ACCESS_TOKEN
+            - az webapp deployment source config-local-git --name "rhea-reserve" --resource-group "recursos-for-rhea"
