@@ -13,6 +13,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Cuenta from './components/Cuenta';
 import VistaCliente from './components/VistaCliente'; // Importar VistaCliente
+import RegistroEmpleado from './components/RegistroEmpleado'; // Importar RegistroEmpleado
 import './index.css';
 
 // Función PrivateRoute para proteger rutas privadas
@@ -40,6 +41,9 @@ const AppContent = () => {
           {/* Rutas públicas para Login y Registro */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+
+          {/* Nueva ruta pública para registro del empleado usando el token */}
+          <Route path="/registro/:token" element={<RegistroEmpleado />} />
 
           {/* Rutas privadas protegidas */}
           <Route path="/" element={<Navigate to="/cuenta" replace />} />
