@@ -1,12 +1,25 @@
-image: node:14
-
 pipelines:
   branches:
     main:
       - step:
-          name: Deploy to Azure
+          name: Build Frontend
+          caches:
+            - node
           script:
+            - cd barberia-frontend
             - npm install
             - npm run build
+      - step:
+          name: Build Backend
+          caches:
+            - node
+          script:
+            - cd barberia-backend
+            - npm install
+            - npm start
+      - step:
+          name: Deploy to Azure
+          deployment: production
+          script:
             - az login --access-token $AZURE_ACCESS_TOKEN
             - az webapp deployment source config-local-git --name "rhea-reserve" --resource-group "recursos-for-rhea"
