@@ -29,6 +29,9 @@ const Cuenta = () => {
   const [categoria, setCategoria] = useState('');
   // estado para descripcion
   const [descripcion, setDescripcion] = useState('');
+  // Estado para el archivo del logo
+  const [logoFile, setLogoFile] = useState(null);
+
 
   // Obtener el usuario logeado y su negocio al cargar el componente
   useEffect(() => {
@@ -138,6 +141,12 @@ const Cuenta = () => {
     
     console.log({ categoria, descripcion });
     console.log('Token obtenido:', token);
+    const formData = new FormData();
+    formData.append('categoria', categoria);
+    formData.append('descripcion', descripcion);
+    if (logoFile) {
+      formData.append('logo', logoFile); // Añadir el archivo del logo si existe
+    }
     try {
       if (!user.negocio.id) {
         alert('No se encontró un negocio asociado al usuario.');
@@ -145,17 +154,26 @@ const Cuenta = () => {
       }
   
       await axios.put(
-  `http://localhost:5000/api/negocios/${user.negocio.id}`,
-  { categoria, descripcion },
-  {
-    headers: { Authorization: `Bearer ${token}` },
-  }
-);
+        `http://localhost:5000/api/negocios/${user.negocio.id}`,
+        formData,  // Cambiar de `{ categoria, descripcion }` a `formData`
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
 
       alert('Datos actualizados correctamente.');
     } catch (error) {
       console.error('Error al actualizar la descripción:', error);
     }
+  };
+
+  // Manejar cambios en la subida del logo
+  const handleLogoChange = (e) => {
+    setLogoFile(e.target.files[0]);
   };
 
   // Enviar los datos del formulario de horarios al backend
@@ -211,7 +229,7 @@ const Cuenta = () => {
         ¡Bienvenido <span className="text-purple-500">{user.nombre}</span>!
       </h1>
       <p className="mb-8">Comencemos con el proceso de completar la información de tu negocio.</p>
-
+      
       {/* Formulario para categoría */}
       <form className="bg-white p-6 rounded shadow-md space-y-6 mb-6">
   <div>
@@ -240,7 +258,16 @@ const Cuenta = () => {
       placeholder="Describe tu negocio aquí"
     />
   </div>
-
+      {/* Campo para subir el logo del negocio */}
+      <div>
+          <label className="block font-semibold mb-2">Logo del negocio</label>
+          <input
+            type="file"
+            onChange={handleLogoChange}
+            className="p-2 border rounded w-full bg-gray-100"
+            accept="image/*"
+          />
+        </div>
   <button
     type="button"
     onClick={handleSubmit}

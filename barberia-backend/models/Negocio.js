@@ -42,7 +42,7 @@ const Negocio = sequelize.define('Negocio', {
     defaultValue: true,
   },
   logo: {
-    type: DataTypes.BLOB, // Ajusta según tu manejo de imágenes
+    type: DataTypes.STRING, // Ajusta según tu manejo de imágenes
   },
   categoria: {
     type: DataTypes.STRING(100),

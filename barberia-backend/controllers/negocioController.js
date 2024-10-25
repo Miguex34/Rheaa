@@ -2,6 +2,7 @@ const  Negocio  = require('../models/Negocio'); // Asegúrate de que la ruta sea
 const  DuenoNegocio  = require('../models/DuenoNegocio'); // Tabla intermedia para la relación de Dueño-Negocio
 const jwt = require('jsonwebtoken');
 const authMiddleware = require('../middleware/authMiddleware');
+
 // Controlador para crear un nuevo negocio
 exports.createNegocio = async (req, res) => {
   try {
@@ -74,32 +75,39 @@ exports.getNegocioById = async (req, res) => {
 // Controlador para actualizar los datos de un negocio, incluyendo la categoría
 exports.updateNegocio = async (req, res) => {
   try {
-    console.log('Datos recibidos en updateNegocio:', req.body); // Verificar si se reciben los datos
-    console.log('ID del negocio:', req.params.id); // Verificar si se recibe el ID
+    const { nombre, telefono, correo, categoria, direccion, horario_inicio, horario_cierre, descripcion } = req.body;
 
-    const { nombre, telefono, direccion, horario_inicio, horario_cierre, categoria, descripcion } = req.body;
+    // Inicializa logoUrl con null
+    let logoUrl = null;
 
-    // Busca el negocio por ID
-    const negocio = await Negocio.findByPk(req.params.id);
-    if (!negocio) {
-      return res.status(404).json({ message: 'Negocio no encontrado' });
+    // Si se sube un nuevo logo, genera la URL
+    if (req.file) {
+      logoUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
     }
 
-    // Actualiza el negocio
+    // Buscar el negocio por ID
+    const negocio = await Negocio.findByPk(req.params.id);
+    if (!negocio) {
+      return res.status(404).json({ message: 'Negocio no encontrado.' });
+    }
+
+    // Actualizar los datos del negocio
     await negocio.update({
       nombre,
       telefono,
+      correo,
+      categoria,
       direccion,
       horario_inicio,
       horario_cierre,
-      categoria,
       descripcion,
+      logo: logoUrl || negocio.logo, // Si no se sube un logo nuevo, mantener el actual
     });
 
     res.status(200).json({ message: 'Negocio actualizado exitosamente', negocio });
   } catch (error) {
     console.error('Error al actualizar el negocio:', error);
-    res.status(500).json({ message: 'Error al actualizar el negocio' });
+    res.status(500).json({ message: 'Error al actualizar el negocio.' });
   }
 };
 

@@ -42,6 +42,7 @@ app.use('/api/servicios', servicioRoutes);
 app.use('/api/pagos', pagoRoutes);
 app.use('/api/disponibilidadEmpleado', disponibilidadEmpleadoRoutes);
 app.use('/api/horarios', horarioRoutes);
+app.use('/uploads', express.static('uploads'));
 
 // Función asincrónica para sincronizar la base de datos en el orden correcto
 const syncDatabase = async () => {

@@ -33,6 +33,17 @@ const authMiddleware = async (req, res, next) => {
         id: usuario.negocio.id,
         nombre: usuario.negocio.nombre,
         telefono: usuario.negocio.telefono,
+        direccion: usuario.negocio.direccion,
+        horario_inicio: usuario.negocio.horario_inicio,
+        horario_cierre: usuario.negocio.horario_cierre,
+        correo: usuario.negocio.correo,
+        descripcion: usuario.negocio.descripcion,
+        activo: usuario.negocio.activo,
+        logo: usuario.negocio.logo,
+        categoria: usuario.negocio.categoria,
+        latitud: usuario.negocio.latitud,
+        longitud: usuario.negocio.longitud,
+        id_dueno: usuario.negocio.id_dueno,
       } : {},
     };
 
@@ -48,8 +59,3 @@ const authMiddleware = async (req, res, next) => {
 };
 
 module.exports = authMiddleware;
-
-
-
-
-
