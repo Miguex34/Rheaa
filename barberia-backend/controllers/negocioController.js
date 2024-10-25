@@ -1,8 +1,7 @@
-const { Negocio } = require('../models/Negocio'); // Asegúrate de que la ruta sea correcta
-const { DuenoNegocio } = require('../models/DuenoNegocio'); // Tabla intermedia para la relación de Dueño-Negocio
+const  Negocio  = require('../models/Negocio'); // Asegúrate de que la ruta sea correcta
+const  DuenoNegocio  = require('../models/DuenoNegocio'); // Tabla intermedia para la relación de Dueño-Negocio
 const jwt = require('jsonwebtoken');
 const authMiddleware = require('../middleware/authMiddleware');
-const { createNegocio, getAllNegocios, getNegocioById, updateNegocio, updateCategoria } = require('../controllers/negocioController');
 // Controlador para crear un nuevo negocio
 exports.createNegocio = async (req, res) => {
   try {
@@ -27,7 +26,8 @@ exports.createNegocio = async (req, res) => {
       horario_cierre,
       correo,
       id_dueno,
-      categoria, // Ahora incluye la categoría
+      categoria,
+      descripcion, // Ahora incluye la categoría
     });
     console.log('Negocio creado:', negocio);
 
@@ -74,20 +74,35 @@ exports.getNegocioById = async (req, res) => {
 // Controlador para actualizar los datos de un negocio, incluyendo la categoría
 exports.updateNegocio = async (req, res) => {
   try {
-    const { nombre, telefono, direccion, horario_inicio, horario_cierre, categoria } = req.body;
-    const negocio = await Negocio.findByPk(req.user.id_negocio); // Usar el ID del negocio asociado al usuario logeado
+    console.log('Datos recibidos en updateNegocio:', req.body); // Verificar si se reciben los datos
+    console.log('ID del negocio:', req.params.id); // Verificar si se recibe el ID
 
+    const { nombre, telefono, direccion, horario_inicio, horario_cierre, categoria, descripcion } = req.body;
+
+    // Busca el negocio por ID
+    const negocio = await Negocio.findByPk(req.params.id);
     if (!negocio) {
       return res.status(404).json({ message: 'Negocio no encontrado' });
     }
 
-    await negocio.update({ nombre, telefono, direccion, horario_inicio, horario_cierre, categoria });
+    // Actualiza el negocio
+    await negocio.update({
+      nombre,
+      telefono,
+      direccion,
+      horario_inicio,
+      horario_cierre,
+      categoria,
+      descripcion,
+    });
+
     res.status(200).json({ message: 'Negocio actualizado exitosamente', negocio });
   } catch (error) {
     console.error('Error al actualizar el negocio:', error);
     res.status(500).json({ message: 'Error al actualizar el negocio' });
   }
 };
+
 
 // Controlador para actualizar solo la categoría del negocio
 exports.updateCategoria = async (req, res) => {

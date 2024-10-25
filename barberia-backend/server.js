@@ -25,6 +25,7 @@ const servicioRoutes = require('./routes/servicioRoutes');
 const pagoRoutes = require('./routes/pagoRoutes');
 const horarioRoutes = require('./routes/horarioRoutes');
 const disponibilidadEmpleadoRoutes = require('./routes/disponibilidadEmpleadoRoutes');
+const authMiddleware = require('./middleware/authMiddleware');
 
 const app = express();
 

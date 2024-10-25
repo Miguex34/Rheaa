@@ -15,6 +15,7 @@ const categorias = [
   'Tratamientos Faciales'
 ];
 
+
 const Cuenta = () => {
   const navigate = useNavigate();
 
@@ -26,6 +27,8 @@ const Cuenta = () => {
 
   // Estado para la categoría seleccionada
   const [categoria, setCategoria] = useState('');
+  // estado para descripcion
+  const [descripcion, setDescripcion] = useState('');
 
   // Obtener el usuario logeado y su negocio al cargar el componente
   useEffect(() => {
@@ -48,6 +51,7 @@ const Cuenta = () => {
           console.log('Cargando horarios para el negocio:', negocio.id);
           fetchHorarios(negocio.id);
           setCategoria(negocio.categoria || ''); // Establecer la categoría si ya existe
+          setDescripcion(negocio.descripcion || '');
         } else {
           console.error('El usuario no tiene un negocio asociado:', negocio);
           alert('No se encontró un negocio asociado. Verifica tus datos.');
@@ -128,29 +132,29 @@ const Cuenta = () => {
     }
   };
 
-  // Enviar la categoría al backend
-  const handleCategoriaSubmit = async (e) => {
-    e.preventDefault();
+  // Informacion Negocio
+  const handleSubmit = async () => {
+    const token = localStorage.getItem('token');
+    
+    console.log({ categoria, descripcion });
+    console.log('Token obtenido:', token);
     try {
-      const token = localStorage.getItem('token');
-
       if (!user.negocio.id) {
         alert('No se encontró un negocio asociado al usuario.');
         return;
       }
-
-      // Enviar la categoría al backend
+  
       await axios.put(
-        `http://localhost:5000/api/negocios/${user.negocio.id}`,
-        { categoria },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+  `http://localhost:5000/api/negocios/${user.negocio.id}`,
+  { categoria, descripcion },
+  {
+    headers: { Authorization: `Bearer ${token}` },
+  }
+);
 
-      alert('Categoría actualizada correctamente.');
+      alert('Datos actualizados correctamente.');
     } catch (error) {
-      console.error('Error al actualizar la categoría:', error);
+      console.error('Error al actualizar la descripción:', error);
     }
   };
 
@@ -194,7 +198,7 @@ const Cuenta = () => {
         setHorarios(horariosActualizados);
       } else {
         console.error('La respuesta del servidor no es un array:', response.data);
-        alert('Error inesperado: la respuesta del servidor no tiene el formato esperado.');
+        
       }
     } catch (error) {
       console.error('Error al actualizar los horarios:', error);
@@ -225,6 +229,25 @@ const Cuenta = () => {
       ))}
     </select>
   </div>
+
+  {/* Campo para descripción del negocio */}
+  <div>
+    <label  className="block font-semibold mb-2">Descripción del negocio</label>
+    <textarea
+      value={descripcion}
+      onChange={(e) => setDescripcion(e.target.value)}
+      className="p-2 border rounded w-full bg-gray-100"
+      placeholder="Describe tu negocio aquí"
+    />
+  </div>
+
+  <button
+    type="button"
+    onClick={handleSubmit}
+    className="bg-purple-500 text-white px-4 py-2 rounded"
+  >
+    Guardar Datos del Negocio
+  </button>
 </form>
 
       {/* Formulario para horario */}

@@ -12,20 +12,15 @@ const authMiddleware = async (req, res, next) => {
     const token = authHeader.replace('Bearer ', '');
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Busca al usuario e incluye su negocio
+    // Busca al usuario e incluye el negocio relacionado
     const usuario = await Usuario.findOne({
       where: { id: decoded.id },
-      include: { model: Negocio, as: 'negocio', attributes: ['id', 'nombre'] },
+      include: [{ model: Negocio, as: 'negocio' }],
     });
 
     if (!usuario) {
       console.error('Usuario no encontrado.');
       return res.status(404).json({ message: 'Usuario no encontrado.' });
-    }
-
-    if (!usuario.negocio) {
-      console.error('Negocio no encontrado para el usuario:', usuario);
-      return res.status(404).json({ message: 'El usuario no tiene un negocio asociado.' });
     }
 
     // Adjuntar los datos al objeto req.user
@@ -45,11 +40,15 @@ const authMiddleware = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Error en el middleware de autenticación:', error);
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ message: 'Token no válido.' });
+    }
     res.status(500).json({ message: 'Error de autenticación.' });
   }
 };
 
 module.exports = authMiddleware;
+
 
 
 

@@ -55,7 +55,7 @@ const register = async (req, res) => {
       horario_cierre,
       correo: nuevoUsuario.correo,
       id_dueno: nuevoUsuario.id,
-      categoria,
+      
     });
 
     // Crear la relación entre el usuario y el negocio (dueño de negocio)
@@ -127,7 +127,7 @@ const getLoggedUser = async (req, res) => {
       include: {
         model: Negocio,
         as: 'negocio',
-        attributes: ['id', 'nombre', 'telefono'],
+        attributes: ['id', 'nombre', 'telefono','correo','descripcion','categoria'],
       },
     });
 
