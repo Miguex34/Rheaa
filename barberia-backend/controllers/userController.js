@@ -147,10 +147,48 @@ const getLoggedUser = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener el usuario logeado' });
   }
 };
+const updateUser = async (req, res) => {
+  const { nombre, correo, telefono, contraseñaActual, nuevaContraseña } = req.body;
 
+  try {
+    const usuario = await Usuario.findByPk(req.user.id);
+    if (!usuario) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    // Si se intenta cambiar la contraseña, verificar la contraseña actual
+    if (nuevaContraseña) {
+      if (!contraseñaActual) {
+        return res.status(400).json({ message: 'Debe ingresar la contraseña actual para cambiarla.' });
+      }
+
+      // Verificar la contraseña actual
+      const isPasswordValid = await bcrypt.compare(contraseñaActual, usuario.contrasena_hash);
+      if (!isPasswordValid) {
+        return res.status(401).json({ message: 'Contraseña actual incorrecta' });
+      }
+
+      // Crear el hash de la nueva contraseña
+      const hashedPassword = await bcrypt.hash(nuevaContraseña, 10);
+      usuario.contrasena_hash = hashedPassword;
+    }
+
+    // Actualizar otros campos si están presentes
+    if (nombre) usuario.nombre = nombre;
+    if (correo) usuario.correo = correo;
+    if (telefono) usuario.telefono = telefono;
+
+    await usuario.save();
+    return res.status(200).json({ message: 'Usuario actualizado correctamente' });
+  } catch (error) {
+    console.error('Error al actualizar el usuario:', error);
+    return res.status(500).json({ error: 'Error al actualizar el usuario', detalle: error.message });
+  }
+};
 module.exports = {
   register,
   login,
   getUserById,
   getLoggedUser,
+  updateUser,
 };
