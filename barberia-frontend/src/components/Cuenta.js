@@ -31,7 +31,7 @@ const Cuenta = () => {
   const [descripcion, setDescripcion] = useState('');
   // Estado para el archivo del logo
   const [logoFile, setLogoFile] = useState(null);
-
+  const [logoUrl, setLogoUrl] = useState('');
 
   // Obtener el usuario logeado y su negocio al cargar el componente
   useEffect(() => {
@@ -55,6 +55,7 @@ const Cuenta = () => {
           fetchHorarios(negocio.id);
           setCategoria(negocio.categoria || ''); // Establecer la categoría si ya existe
           setDescripcion(negocio.descripcion || '');
+          setLogoUrl(negocio.logo || '');
         } else {
           console.error('El usuario no tiene un negocio asociado:', negocio);
           alert('No se encontró un negocio asociado. Verifica tus datos.');
@@ -66,6 +67,8 @@ const Cuenta = () => {
         navigate('/login');
       });
   }, [navigate]);
+
+  
 
   // Función para obtener los horarios desde el backend
   const fetchHorarios = async (id_negocio) => {
@@ -138,14 +141,25 @@ const Cuenta = () => {
   // Informacion Negocio
   const handleSubmit = async () => {
     const token = localStorage.getItem('token');
-    
+     // Validación de la descripción en el frontend
+  if (descripcion.length < 10 || descripcion.length > 100) {
+    alert('La descripción debe tener entre 10 y 100 caracteres.');
+    return;
+  }
+
+  const descripcionRegex = /^[a-zA-Z0-9\s.,!?'"]+$/;
+  if (!descripcionRegex.test(descripcion)) {
+    alert('La descripción contiene caracteres no permitidos. Solo se permiten letras, números y algunos caracteres comunes.');
+    return;
+  }
+
     console.log({ categoria, descripcion });
     console.log('Token obtenido:', token);
     const formData = new FormData();
     formData.append('categoria', categoria);
     formData.append('descripcion', descripcion);
     if (logoFile) {
-      formData.append('logo', logoFile); // Añadir el archivo del logo si existe
+      formData.append('logo', logoFile);  // Añadir el archivo del logo si existe
     }
     try {
       if (!user.negocio.id) {
@@ -153,27 +167,32 @@ const Cuenta = () => {
         return;
       }
   
-      await axios.put(
-        `http://localhost:5000/api/negocios/${user.negocio.id}`,
-        formData,  // Cambiar de `{ categoria, descripcion }` a `formData`
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.put(`http://localhost:5000/api/negocios/${user.negocio.id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
+      });
       
 
       alert('Datos actualizados correctamente.');
+      setLogoUrl(response.data.negocio.logo);
     } catch (error) {
-      console.error('Error al actualizar la descripción:', error);
+      if (error.response && error.response.data.message) {
+        alert(`Error: ${error.response.data.message}`); // Mostrar el mensaje de error del backend
+      } else {
+        console.error('Error al actualizar la información del negocio:', error);
+      }
     }
   };
 
   // Manejar cambios en la subida del logo
   const handleLogoChange = (e) => {
-    setLogoFile(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file) {
+      setLogoFile(file); // Setea el archivo para subir
+      setLogoUrl(URL.createObjectURL(file)); // Mostrar la nueva imagen como preview
+    }
   };
 
   // Enviar los datos del formulario de horarios al backend
@@ -258,6 +277,14 @@ const Cuenta = () => {
       placeholder="Describe tu negocio aquí"
     />
   </div>
+  {/* Mostrar el logo del negocio si existe */}
+  {logoUrl && (
+        <div className="mb-6">
+          <img src={logoUrl} alt="Logo del negocio" className="w-48 h-48 object-cover" />
+          <p className="text-green-500">Imagen del logo ya cargada. Si subes otra, reemplazará la actual.</p>
+        </div>
+      )}
+    
       {/* Campo para subir el logo del negocio */}
       <div>
           <label className="block font-semibold mb-2">Logo del negocio</label>

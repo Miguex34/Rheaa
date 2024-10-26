@@ -12,6 +12,25 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage });
+// Filtro para archivos: solo permitir imágenes
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = /jpeg|jpg|png|gif/;
+  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedTypes.test(file.mimetype);
+
+  if (mimetype && extname) {
+    return cb(null, true);
+  } else {
+    cb(new Error('Solo se permiten archivos de imagen (jpeg, jpg, png, gif).'), false);
+  }
+};
+
+// Configurar multer con almacenamiento y filtro de archivos
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // Limitar el tamaño del archivo a 5 MB
+});
 
 module.exports = upload;
+

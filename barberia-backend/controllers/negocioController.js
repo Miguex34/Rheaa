@@ -76,7 +76,20 @@ exports.getNegocioById = async (req, res) => {
 exports.updateNegocio = async (req, res) => {
   try {
     const { nombre, telefono, correo, categoria, direccion, horario_inicio, horario_cierre, descripcion } = req.body;
+    // Validación de la descripción
+    if (descripcion) {
+      // Longitud mínima y máxima
+      if (descripcion.length < 10 || descripcion.length > 300) {
+        return res.status(400).json({ message: 'La descripción debe tener entre 10 y 300 caracteres.' });
+      }
 
+      // Validación de caracteres permitidos (solo letras, números y caracteres comunes)
+      const descripcionRegex = /^[a-zA-Z0-9\s.,!?'"]+$/;
+      if (!descripcionRegex.test(descripcion)) {
+        return res.status(400).json({ message: 'La descripción contiene caracteres no permitidos.' });
+      }
+    }
+    
     // Inicializa logoUrl con null
     let logoUrl = null;
 
@@ -129,14 +142,14 @@ exports.updateCategoria = async (req, res) => {
       return res.status(404).json({ message: 'Negocio no encontrado.' });
     }
 
-    // Actualizar la categoría
-    negocio.categoria = categoria;
-    await negocio.save();
+    // Actualizar la categoría del negocio
+    await negocio.update({ categoria });
 
     res.status(200).json({ message: 'Categoría actualizada correctamente.', categoria: negocio.categoria });
   } catch (error) {
     console.error('Error al actualizar la categoría:', error);
-    res.status(500).json({ error: 'Error al actualizar la categoría.' });
+    res.status(500).json({ message: 'Error al actualizar la categoría.' });
   }
 };
+
 
