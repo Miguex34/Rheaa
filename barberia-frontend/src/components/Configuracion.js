@@ -46,8 +46,8 @@ const Configuracion = () => {
       newErrors.correo = 'Ingrese un correo electrónico válido.';
     }
 
-    if (!formData.telefono.match(/^\d{9,15}$/)) {
-      newErrors.telefono = 'El teléfono debe contener entre 9 y 15 dígitos.';
+    if (!formData.telefono.match(/^\d{9}$/)) {
+      newErrors.telefono = 'El teléfono debe contener  9 dígitos.';
     }
 
     if (formData.nuevaContraseña && formData.nuevaContraseña.length < 8) {

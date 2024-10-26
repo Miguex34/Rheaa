@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const Negocio = require('../models/Negocio');
 const { createNegocio, getAllNegocios, getNegocioById, updateNegocio, updateCategoria } = require('../controllers/negocioController');
 const authMiddleware = require('../middleware/authMiddleware');
 const upload = require('../middleware/upload');
@@ -21,5 +22,21 @@ router.put('/:id', authMiddleware, (req, res) => {
   });  // Para actualizar todo el negocio
 router.put('/negocios/:id/categoria', authMiddleware, updateCategoria); // Para actualizar solo la categoría
 
+router.get('/:nombre', async (req, res) => {
+  const { nombre } = req.params;
 
+  try {
+    const negocio = await Negocio.findOne({ where: { nombre } });
+
+    if (!negocio) {
+      return res.status(404).json({ message: 'Negocio no encontrado' });
+    }
+
+    // Devuelve la información del negocio
+    return res.status(200).json(negocio);
+  } catch (error) {
+    console.error('Error al obtener el negocio:', error);
+    return res.status(500).json({ error: 'Error al obtener el negocio' });
+  }
+});
 module.exports = router;
