@@ -27,6 +27,8 @@ const RegistroEmpleado = () => {
     }
   });
 
+  const [errors, setErrors] = useState({});
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -47,14 +49,42 @@ const RegistroEmpleado = () => {
     });
   };
 
+  const validateForm = () => {
+    let formErrors = {};
+    // Validación del nombre: solo letras y espacios
+    if (!/^[a-zA-Z\s]+$/.test(formData.nombre)) {
+      formErrors.nombre = 'El nombre solo debe contener letras y espacios';
+    }
+
+    // Validación de la contraseña: mínimo 6 caracteres y sin espacios
+    if (formData.contraseña.length < 6 || /\s/.test(formData.contraseña)) {
+      formErrors.contraseña = 'La contraseña debe tener al menos 6 caracteres y no contener espacios';
+    }
+
+    // Validación del teléfono: 9 dígitos
+    if (!/^\d{9}$/.test(formData.telefono)) {
+      formErrors.telefono = 'El teléfono debe tener exactamente 9 dígitos';
+    }
+
+    // Validación del cargo: solo letras
+    if (!/^[a-zA-Z]+$/.test(formData.cargo)) {
+      formErrors.cargo = 'El cargo solo debe contener letras';
+    }
+
+    setErrors(formErrors);
+    return Object.keys(formErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      await axios.post(`http://localhost:5000/api/empleados/registro/${token}`, formData);
-      alert('Registro completado con éxito');
-      navigate('/login');
-    } catch (error) {
-      alert('Hubo un error al completar el registro');
+    if (validateForm()) {
+      try {
+        await axios.post(`http://localhost:5000/api/empleados/registro/${token}`, formData);
+        alert('Registro completado con éxito');
+        navigate('/login');
+      } catch (error) {
+        alert('Hubo un error al completar el registro');
+      }
     }
   };
 
@@ -106,6 +136,7 @@ const RegistroEmpleado = () => {
               placeholder="Ingresa tu nombre"
               required
             />
+            {errors.nombre && <p className="text-red-500 text-xs mt-1">{errors.nombre}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Contraseña</label>
@@ -118,6 +149,7 @@ const RegistroEmpleado = () => {
               placeholder="Ingresa tu contraseña"
               required
             />
+            {errors.contraseña && <p className="text-red-500 text-xs mt-1">{errors.contraseña}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Teléfono</label>
@@ -130,6 +162,7 @@ const RegistroEmpleado = () => {
               placeholder="Ingresa tu número de teléfono"
               required
             />
+            {errors.telefono && <p className="text-red-500 text-xs mt-1">{errors.telefono}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Cargo</label>
@@ -142,6 +175,7 @@ const RegistroEmpleado = () => {
               placeholder="Ingresa tu cargo"
               required
             />
+            {errors.cargo && <p className="text-red-500 text-xs mt-1">{errors.cargo}</p>}
           </div>
 
           {/* Render availability for each day */}
