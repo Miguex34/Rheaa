@@ -1,4 +1,4 @@
-const { Pago } = require('../models/Pago');
+const  Pago  = require('../models/Pago');
 
 exports.createPago = async (req, res) => {
   const { id_cita, monto, estado } = req.body;

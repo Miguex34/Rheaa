@@ -55,6 +55,7 @@ const AppContent = () => {
           <Route path="/calendario" element={<PrivateRoute><Calendario /></PrivateRoute>} />
           <Route path="/configuracion" element={<PrivateRoute><Configuracion /></PrivateRoute>} />
           <Route path="/soporte" element={<PrivateRoute><Soporte /></PrivateRoute>} />
+          <Route path="/negocio/:nombre" element={<VistaCliente />} />
 
           {/* Redireccionar rutas no encontradas */}
           <Route path="*" element={<Navigate to={token ? "/" : "/login"} replace />} />

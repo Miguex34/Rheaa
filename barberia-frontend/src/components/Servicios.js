@@ -13,7 +13,7 @@ const Servicios = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [message, setMessage] = useState(null);
-
+  const [error, setError] = useState('');
   // Obtener los servicios al cargar el componente
   useEffect(() => {
     fetchServicios();
@@ -37,7 +37,16 @@ const Servicios = () => {
     // Validaciones específicas para cada campo
     if (name === 'nombre' && !/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]*$/.test(value)) return;
     if (name === 'duracion' && (!/^\d*$/.test(value) || value.length > 4)) return;
-    if (name === 'descripcion' && value.length > 100) return;
+    if (name === 'descripcion') {
+      if (value.length > 100) {
+        setError('La descripción no debe exceder los 100 caracteres.');
+        return;
+      } else if (value.length < 10 && value.length > 0) {
+        setError('La descripción debe tener al menos 10 caracteres.');
+      } else {
+        setError('');
+      }
+    }
 
     if (name === 'precio') {
       const numericValue = value.replace(/\D/g, '');
@@ -49,10 +58,16 @@ const Servicios = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
+    if (form.descripcion.length < 10 || form.descripcion.length > 100) {
+      setError('La descripción debe tener entre 10 y 100 caracteres.');
+      return;
+    }
+  
     try {
       const token = localStorage.getItem('token');
       const formData = { ...form, precio: parseFloat(form.precio) };
-
+  
       if (isEditing) {
         await axios.put(`http://localhost:5000/api/servicios/${editingId}`, formData, {
           headers: { Authorization: `Bearer ${token}` },
@@ -64,9 +79,10 @@ const Servicios = () => {
         });
         setMessage({ type: 'success', text: 'Servicio creado con éxito.' });
       }
-
+  
       setForm({ nombre: '', descripcion: '', duracion: '', precio: '', disponible: true });
       setIsEditing(false);
+      setError('');
       fetchServicios(); // Recargar servicios
     } catch (error) {
       console.error('Error al guardar el servicio:', error);
@@ -145,6 +161,7 @@ const Servicios = () => {
             className="w-full p-2 pl-8 border rounded"
             required
           />
+          {error && <p style={{ color: 'red' }}>{error}</p>}
         </div>
         <div className="flex items-center">
           <input
