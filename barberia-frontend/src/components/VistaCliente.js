@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-
+import { useNavigate } from 'react-router-dom';
 const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
 const VistaCliente = () => {
@@ -14,7 +14,7 @@ const VistaCliente = () => {
   const [error, setError] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedServicio, setSelectedServicio] = useState(null);
-
+  const navigate = useNavigate();
   useEffect(() => {
     // Función para obtener información del negocio, servicios y horarios
     const fetchData = async () => {
@@ -40,6 +40,10 @@ const VistaCliente = () => {
 
     fetchData();
   }, [nombre]);
+  
+  const handleReservaClick = (servicioId) => {
+    navigate(`/negocio/${negocio.id}/servicio/${servicioId}/reservar`);
+  };
 
   const handleOpenModal = (servicio) => {
     setSelectedServicio(servicio);
@@ -89,6 +93,12 @@ const VistaCliente = () => {
                 >
                   Ver descripción
                 </button>
+                <button
+                onClick={() => handleReservaClick(servicio.id)}
+                className="mt-4 px-4 py-2 bg-blue-500 text-white font-bold rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+              >
+                Reservar este Servicio
+              </button>
               </div>
             ))}
           </div>

@@ -1,4 +1,3 @@
-// src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
@@ -12,9 +11,11 @@ import Soporte from './components/Soporte';
 import Login from './components/Login';
 import Register from './components/Register';
 import Cuenta from './components/Cuenta';
-import VistaCliente from './components/VistaCliente'; // Importar VistaCliente
-import RegistroEmpleado from './components/RegistroEmpleado'; // Importar RegistroEmpleado
+import VistaCliente from './components/VistaCliente'; 
+import RegistroEmpleado from './components/RegistroEmpleado';
 import './index.css';
+import Reserva from './components/Reserva';
+import Disponibilidad from './components/Disponibilidad';
 
 // Función PrivateRoute para proteger rutas privadas
 const PrivateRoute = ({ children }) => {
@@ -35,8 +36,10 @@ const AppContent = () => {
 
       <div className={`flex-grow p-4 ${showSidebar ? 'ml-64' : ''}`}>
         <Routes>
-          {/* Ruta pública para la VistaCliente con un ID dinámico */}
+          {/* Rutas públicas para la VistaCliente y Disponibilidad */}
           <Route path="/cliente/:id_negocio" element={<VistaCliente />} />
+          <Route path="/disponibilidad/:id_negocio" element={<Disponibilidad />} />
+          <Route path="/reserva/:negocioId/:servicioId/:horarioId" element={<Reserva />} />
 
           {/* Rutas públicas para Login y Registro */}
           <Route path="/login" element={<Login />} />
@@ -45,7 +48,7 @@ const AppContent = () => {
           {/* Nueva ruta pública para registro del empleado usando el token */}
           <Route path="/registro/:token" element={<RegistroEmpleado />} />
 
-          {/* Rutas privadas protegidas */}
+{          /* Rutas privadas protegidas */}
           <Route path="/" element={<Navigate to="/cuenta" replace />} />
           <Route path="/cuenta" element={<PrivateRoute><Cuenta /></PrivateRoute>} />
           <Route path="/panel-reservas" element={<PrivateRoute><PanelReservas /></PrivateRoute>} />

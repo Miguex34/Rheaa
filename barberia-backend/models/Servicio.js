@@ -36,6 +36,10 @@ const Servicio = sequelize.define('Servicio', {
     type: DataTypes.BIGINT,
     allowNull: false,
   },
+  id_empleado: {
+    type: DataTypes.BIGINT,
+    allowNull: true,
+  },
 }, {
   tableName: 'servicio',
   timestamps: false,

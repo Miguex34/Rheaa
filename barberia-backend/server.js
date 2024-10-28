@@ -16,6 +16,8 @@ const EmpleadoNegocio = require('./models/EmpleadoNegocio');
 const Pago = require('./models/Pago');
 const Cliente = require('./models/Cliente');
 const Evento = require('./models/Evento');
+const transbankConfig = require('./config/transbankConfig.js');
+const EmpleadoServicio = require('./models/EmpleadoServicio.js');
 
 
 // Importa tus rutas
@@ -46,7 +48,8 @@ app.use('/api/pagos', pagoRoutes);
 app.use('/api/disponibilidadEmpleado', disponibilidadEmpleadoRoutes);
 app.use('/api/horarios', horarioRoutes);
 app.use('/uploads', express.static('uploads'));
-app.use('/api', eventoRoutes);
+app.use('/api/eventos', eventoRoutes);
+app.use('/api/reservas', authMiddleware, reservaRoutes);
 
 // Función asincrónica para sincronizar la base de datos en el orden correcto
 const syncDatabase = async () => {
@@ -65,7 +68,7 @@ const syncDatabase = async () => {
     await Reserva.sync({ force: false });
     await Pago.sync({ force: false });
     await Evento.sync({ force: false });
-
+    await EmpleadoServicio.sync({ force: false });
     console.log('Tablas sincronizadas correctamente.');
   } catch (error) {
     console.error('Error al conectar o sincronizar la base de datos:', error);

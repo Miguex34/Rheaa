@@ -1,10 +1,10 @@
-// src/components/ProtectedRoute.js
 import React, { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
 const ProtectedRoute = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const location = useLocation();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -35,8 +35,14 @@ const ProtectedRoute = ({ children }) => {
     return <div>Cargando...</div>;
   }
 
-  // Redirigir al login si no está autenticado
+  // Permitir acceso a la página de reserva sin autenticación
+  if (location.pathname.startsWith('/reserva')) {
+    return children;
+  }
+
+  // Redirigir al login si no está autenticado para otras rutas protegidas
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
 export default ProtectedRoute;
+

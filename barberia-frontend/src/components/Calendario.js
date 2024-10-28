@@ -160,7 +160,7 @@ const Calendario = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <h2 className="text-3xl font-bold mb-6 text-center">Calendario Personal del Dueño del Negocio</h2>
+      <h2 className="text-3xl font-bold mb-6 text-center">Calendario Personal</h2>
       <div className="bg-white rounded-lg shadow-md p-4 mb-8">
         <Calendar
           localizer={localizer}
