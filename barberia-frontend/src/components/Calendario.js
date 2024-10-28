@@ -52,7 +52,9 @@ const Calendario = () => {
         localStorage.removeItem('token');
       });
   }, []);
-
+  const handleDeleteEvent = (event) => {
+    // Aquí va la lógica para eliminar un evento
+  };
   const cargarEventos = async (id_negocio) => {
     try {
       const response = await axios.get(`http://localhost:5000/api/eventos/${id_negocio}`);
