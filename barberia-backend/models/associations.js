@@ -8,6 +8,7 @@ const Reserva = require('./Reserva');
 const DuenoNegocio = require('./DuenoNegocio');
 const Pago = require('./Pago');
 const Cliente = require('./Cliente');
+const Evento = require('./Evento');
 
 // Asociación: Un Usuario tiene un Negocio (Dueño)
 Usuario.hasOne(Negocio, { foreignKey: 'id_dueno', as: 'negocio' });
@@ -56,6 +57,10 @@ Pago.belongsTo(Reserva, { foreignKey: 'id_reserva' });
 // Usuario también puede tener muchas Reservas (si es cliente o hace la reserva)
 Usuario.hasMany(Reserva, { foreignKey: 'id_cliente', as: 'reservas' });
 Reserva.belongsTo(Usuario, { foreignKey: 'id_cliente' });
+
+// Asociación: Un Usuario tiene muchos Eventos
+Usuario.hasMany(Evento, { foreignKey: 'userId', as: 'eventos' });
+Evento.belongsTo(Usuario, { foreignKey: 'userId', as: 'usuario' });
 
 module.exports = {
   Usuario,

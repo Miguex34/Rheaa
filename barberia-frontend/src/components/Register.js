@@ -36,13 +36,13 @@ const Register = () => {
     if (!emailRegex.test(formData.correo)) {
       newErrors.correo = 'El correo no es válido. Debe terminar en .com, .org, .net o .edu.';
     }
-    if (!passwordRegex.test(formData.contraseña) || formData.contraseña.length < 6) {
-      newErrors.contraseña = 'La contraseña debe tener al menos 6 caracteres y no contener espacios.';
+    if (!passwordRegex.test(formData.contraseña) || formData.contraseña.length < 8) {
+      newErrors.contraseña = 'La contraseña debe tener al menos 8 caracteres y no contener espacios.';
     }
     if (!phoneRegex.test(formData.telefono) || formData.telefono.length !== 9) {
       newErrors.telefono = 'El teléfono debe tener exactamente 9 dígitos.';
     }
-    if (!phoneRegex.test(formData.telefonoNegocio)) {
+    if (!phoneRegex.test(formData.telefonoNegocio || formData.telefono.length !== 9)) {
       newErrors.telefonoNegocio = 'El teléfono del negocio solo puede contener números.';
     }
     if (!addressRegex.test(formData.direccionNegocio)) {

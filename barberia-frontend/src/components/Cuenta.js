@@ -102,10 +102,27 @@ const Cuenta = () => {
 
   // Manejar cambios en los campos del formulario
   const handleChange = (e) => {
-    const { name, value, dataset } = e.target;
+    const { name, value, type, checked, dataset } = e.target;
     const nuevosHorarios = [...horarios];
   
-    nuevosHorarios[dataset.index][name] = value;
+    // Obtener el índice del horario que se está modificando
+    const index = dataset.index;
+  
+    // Realizar la validación
+    if (name === "desde" && nuevosHorarios[index].hasta && value >= nuevosHorarios[index].hasta) {
+      alert("La hora de apertura debe ser anterior a la hora de cierre.");
+      return; // No actualiza si el valor no es válido
+    } else if (name === "hasta" && nuevosHorarios[index].desde && value <= nuevosHorarios[index].desde) {
+      alert("La hora de cierre debe ser posterior a la hora de apertura.");
+      return; // No actualiza si el valor no es válido
+    }
+  
+    // Actualizar el valor del campo dependiendo de si es checkbox o input de tipo time
+    if (type === "checkbox") {
+      nuevosHorarios[index][name] = checked; // Actualizar el estado del checkbox
+    } else {
+      nuevosHorarios[index][name] = value; // Actualizar otros campos
+    }
   
     setHorarios(nuevosHorarios);
   };

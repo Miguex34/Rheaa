@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const sequelize = require('./config/database'); // Configuración de la base de datos
+const sequelize = require('./config/database'); // Configuración de la base de 
+const bodyParser = require('body-parser');
 require('./models/associations'); // Asociaciones entre modelos
 
 // Importa tus modelos explícitamente
@@ -14,6 +15,7 @@ const DuenoNegocio = require('./models/DuenoNegocio');
 const EmpleadoNegocio = require('./models/EmpleadoNegocio');
 const Pago = require('./models/Pago');
 const Cliente = require('./models/Cliente');
+const Evento = require('./models/Evento');
 
 
 // Importa tus rutas
@@ -26,12 +28,13 @@ const pagoRoutes = require('./routes/pagoRoutes');
 const horarioRoutes = require('./routes/horarioRoutes');
 const disponibilidadEmpleadoRoutes = require('./routes/disponibilidadEmpleadoRoutes');
 const authMiddleware = require('./middleware/authMiddleware');
-
+const eventoRoutes = require('./routes/eventoRoutes');
 const app = express();
 
 // Middleware para procesar JSON y habilitar CORS
 app.use(cors());
 app.use(express.json());
+app.use(bodyParser.json());
 
 // Registrar las rutas
 app.use('/api/users', userRoutes);
@@ -43,6 +46,7 @@ app.use('/api/pagos', pagoRoutes);
 app.use('/api/disponibilidadEmpleado', disponibilidadEmpleadoRoutes);
 app.use('/api/horarios', horarioRoutes);
 app.use('/uploads', express.static('uploads'));
+app.use('/api', eventoRoutes);
 
 // Función asincrónica para sincronizar la base de datos en el orden correcto
 const syncDatabase = async () => {
@@ -60,6 +64,7 @@ const syncDatabase = async () => {
     await DisponibilidadEmpleado.sync({ force: false });
     await Reserva.sync({ force: false });
     await Pago.sync({ force: false });
+    await Evento.sync({ force: false });
 
     console.log('Tablas sincronizadas correctamente.');
   } catch (error) {
