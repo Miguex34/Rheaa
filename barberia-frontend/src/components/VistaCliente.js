@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-
+import fondo1 from '../assets/images/fondo1.png';
 const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
 const VistaCliente = () => {
@@ -60,72 +60,79 @@ const VistaCliente = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 flex gap-6">
-      {/* Parte principal de la vista */}
-      <div className="flex-grow bg-white shadow-md rounded-md p-6">
-        {/* Encabezado del negocio */}
-        <div className="flex items-center mb-6">
-          <img
-            src={negocio.logo}
-            alt="Logo del negocio"
-            className="w-24 h-24 rounded-full mr-4 object-cover"
-          />
-          <h2 className="text-3xl font-bold">{negocio.nombre}</h2>
-        </div>
-
-        {/* Servicios del negocio */}
-        <div className="mt-6">
-          <h3 className="text-2xl font-semibold mb-4">Servicios</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {servicios.map((servicio) => (
-              <div key={servicio.id} className="bg-gray-100 p-4 rounded-md shadow-sm hover:bg-gray-200 transition duration-300">
-                <h4 className="text-xl font-bold">{servicio.nombre}</h4>
-                <p><strong>Duración:</strong> {servicio.duracion} minutos</p>
-                <p><strong>Precio:</strong> ${servicio.precio}</p>
-                <p><strong>Categoría:</strong> {servicio.categoria}</p>
-                <button
-                  onClick={() => handleOpenModal(servicio)}
-                  className="mt-2 text-blue-500 underline hover:text-blue-700"
-                >
-                  Ver descripción
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
+    <div className="container mx-auto p-6">
+      {/* Banner */}
+      <div className="mb-6">
+        <img src={fondo1} alt="Banner" className="w-full object-cover h-64 rounded-lg shadow-md" />
       </div>
 
-      {/* Información detallada del negocio */}
-      <div className="w-96 bg-gray-100 shadow-md rounded-md p-6">
-        <h3 className="text-2xl font-bold mb-4">Información del Negocio</h3>
-        <p><strong>Teléfono:</strong> {negocio.telefono}</p>
-        <p><strong>Dirección:</strong> {negocio.direccion}</p>
-        <p><strong>Correo:</strong> {negocio.correo}</p>
-        <p><strong>Descripción:</strong> {negocio.descripcion}</p>
-        <p><strong>Categoría:</strong> {negocio.categoria}</p>
+      {/* Parte principal de la vista */}
+      <div className="flex gap-6">
+        <div className="flex-grow bg-white shadow-md rounded-md p-6">
+          {/* Encabezado del negocio */}
+          <div className="flex items-center mb-6">
+            <img
+              src={negocio.logo}
+              alt="Logo del negocio"
+              className="w-24 h-24 rounded-full mr-4 object-cover shadow-md"
+            />
+            <h2 className="text-3xl font-bold text-gray-800">{negocio.nombre}</h2>
+          </div>
 
-        {/* Horario del negocio */}
-        <div className="mt-6">
-          <h3 className="text-xl font-semibold mb-4">Horario</h3>
-          {horarios.length > 0 ? (
-            <ul>
-              {diasSemana.map((dia) => {
-                const horario = horarios.find(h => h.dia_semana === dia);
-                return (
-                  <li key={dia} className="flex justify-between">
-                    <span>{dia}</span>
-                    <span>
-                      {horario && horario.activo
-                        ? `${horario.hora_inicio} - ${horario.hora_fin}`
-                        : 'Cerrado'}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <p>No se encontraron horarios.</p>
-          )}
+          {/* Servicios del negocio */}
+          <div className="mt-6">
+            <h3 className="text-2xl font-semibold mb-4 text-gray-800">Servicios</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {servicios.map((servicio) => (
+                <div key={servicio.id} className="bg-[#3b3b3b] text-white p-6 rounded-md shadow-lg transform hover:scale-105 transition-transform duration-300">
+                  <h4 className="text-xl font-bold mb-2">{servicio.nombre}</h4>
+                  <p className="mb-2"><strong>Duración:</strong> {servicio.duracion} minutos</p>
+                  <p className="mb-2"><strong>Precio:</strong> ${servicio.precio}</p>
+                  <p className="mb-4"><strong>Categoría:</strong> {servicio.categoria}</p>
+                  <button
+                    onClick={() => handleOpenModal(servicio)}
+                    className="bg-[#855bff] text-white px-4 py-2 rounded-md hover:bg-purple-700 transition duration-300"
+                  >
+                    Ver descripción
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Información detallada del negocio */}
+        <div className="w-96 bg-white shadow-md rounded-md p-6">
+          <h3 className="text-2xl font-bold mb-4 text-gray-800">Información del Negocio</h3>
+          <p className="mb-2"><strong>Teléfono:</strong> {negocio.telefono}</p>
+          <p className="mb-2"><strong>Dirección:</strong> {negocio.direccion}</p>
+          <p className="mb-2"><strong>Correo:</strong> {negocio.correo}</p>
+          <p className="mb-4"><strong>Descripción:</strong> {negocio.descripcion}</p>
+          <p className="mb-4"><strong>Categoría:</strong> {negocio.categoria}</p>
+
+          {/* Horario del negocio */}
+          <div className="mt-6">
+            <h3 className="text-xl font-semibold mb-4 text-gray-800">Horario</h3>
+            {horarios.length > 0 ? (
+              <ul className="space-y-2">
+                {diasSemana.map((dia) => {
+                  const horario = horarios.find(h => h.dia_semana === dia);
+                  return (
+                    <li key={dia} className="flex justify-between text-gray-700">
+                      <span>{dia}</span>
+                      <span>
+                        {horario && horario.activo
+                          ? `${horario.hora_inicio} - ${horario.hora_fin}`
+                          : 'Cerrado'}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No se encontraron horarios.</p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -149,5 +156,7 @@ const VistaCliente = () => {
 };
 
 export default VistaCliente;
+
+
 
 
