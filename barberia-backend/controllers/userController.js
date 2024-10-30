@@ -4,7 +4,7 @@ const Negocio = require('../models/Negocio');
 const DuenoNegocio = require('../models/DuenoNegocio');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-
+const EmpleadoNegocio = require('../models/EmpleadoNegocio');
 // Función para registrar un usuario y crear su negocio
 const register = async (req, res) => {
   const {
@@ -67,6 +67,11 @@ const register = async (req, res) => {
     // Generar un token JWT para el usuario recién registrado
     const token = jwt.sign({ id: nuevoUsuario.id, correo: nuevoUsuario.correo }, process.env.JWT_SECRET, {
       expiresIn: '1d',
+    });
+    // Crear relación entre usuario y negocio
+    await EmpleadoNegocio.create({
+      id_usuario: nuevoUsuario.id,
+      id_negocio: nuevoNegocio.id
     });
 
     return res.status(201).json({ message: 'Usuario y negocio creados con éxito', token });

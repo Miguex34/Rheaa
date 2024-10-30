@@ -7,6 +7,7 @@ const empleadoController = require('../controllers/empleadoController');
 router.post('/', empleadoController.createEmpleado);
 router.get('/negocio/:id_negocio', empleadoController.getEmpleadosByNegocio);
 router.get('/:id', empleadoController.getEmpleadoById);
+router.get('/', empleadoController.getAllEmpleados);
 
 // Rutas para la creación de empleados por correo
 router.post('/crear', authMiddleware, empleadoController.crearEmpleado); // Ruta para crear empleado. Agregamos el middleware de autenticación a la ruta de creación de empleado por correo

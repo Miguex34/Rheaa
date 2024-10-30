@@ -1,5 +1,6 @@
 const  Negocio  = require('../models/Negocio'); // Asegúrate de que la ruta sea correcta
-const  DuenoNegocio  = require('../models/DuenoNegocio'); // Tabla intermedia para la relación de Dueño-Negocio
+const  DuenoNegocio  = require('../models/DuenoNegocio'); // Tabla intermedia para la relación de Dueño-
+const EmpleadoNegocio = require('../models/EmpleadoNegocio');
 const jwt = require('jsonwebtoken');
 const authMiddleware = require('../middleware/authMiddleware');
 
@@ -38,6 +39,10 @@ exports.createNegocio = async (req, res) => {
       id_negocio: negocio.id,
     });
     console.log('Relación Dueño-Negocio creada:', relacionDuenoNegocio);
+    await EmpleadoNegocio.create({
+      id: id_dueno,
+      id_negocio: negocio.id
+    });
 
     res.json(negocio); // Devolver el negocio creado en la respuesta
   } catch (error) {

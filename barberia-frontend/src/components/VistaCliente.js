@@ -14,7 +14,7 @@ const VistaCliente = () => {
   const [error, setError] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedServicio, setSelectedServicio] = useState(null);
-  const navigate = useNavigate();
+  
   useEffect(() => {
     // Función para obtener información del negocio, servicios y horarios
     const fetchData = async () => {
@@ -41,9 +41,7 @@ const VistaCliente = () => {
     fetchData();
   }, [nombre]);
   
-  const handleReservaClick = (servicioId) => {
-    navigate(`/negocio/${negocio.id}/servicio/${servicioId}/reservar`);
-  };
+
 
   const handleOpenModal = (servicio) => {
     setSelectedServicio(servicio);

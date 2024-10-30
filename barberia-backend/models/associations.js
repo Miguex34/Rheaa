@@ -63,19 +63,23 @@ Usuario.hasMany(Evento, { foreignKey: 'userId', as: 'eventos' });
 Evento.belongsTo(Usuario, { foreignKey: 'userId', as: 'usuario' });
 
 // Asociación: Relación entre Servicio y Empleado a través de EmpleadoServicio
-Servicio.belongsToMany(EmpleadoNegocio, {
+// associations.js
+
+Servicio.belongsToMany(Usuario, {
   through: EmpleadoServicio,
   foreignKey: 'id_servicio',
-  otherKey: 'id_empleado',
-  as: 'empleados',
+  otherKey: 'id_empleado', 
+  as: 'empleados'
 });
 
-EmpleadoNegocio.belongsToMany(Servicio, {
+Usuario.belongsToMany(Servicio, {
   through: EmpleadoServicio,
-  foreignKey: 'id_empleado',
+  foreignKey: 'id_empleado', 
   otherKey: 'id_servicio',
-  as: 'servicios',
+  as: 'servicios'
 });
+
+
 
 module.exports = {
   Usuario,

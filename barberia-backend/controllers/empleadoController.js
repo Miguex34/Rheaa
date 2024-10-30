@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const db = require('../config/database');
 const sendEmail = require('../utils/sendEmail');
 const dayjs = require('dayjs');
+const  Usuario  = require('../models/Usuario');
 
 
 exports.createEmpleado = async (req, res) => {
@@ -232,5 +233,23 @@ exports.completarRegistroEmpleado = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error al completar el registro.' });
+  }
+};
+
+
+
+// Filtrar solo empleados con cargo "Empleado" o "Dueño"
+exports.getAllEmpleados = async (req, res) => {
+  try {
+    const empleados = await Usuario.findAll({
+      attributes: ['id', 'nombre', 'correo', 'cargo'],
+      where: {
+        cargo: ['Empleado', 'Dueño'] // Filtra solo "Empleado" o "Dueño"
+      }
+    });
+    res.json(empleados);
+  } catch (error) {
+    console.error('Error al obtener empleados:', error);
+    res.status(500).json({ error: 'Error al obtener empleados' });
   }
 };
