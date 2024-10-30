@@ -224,7 +224,7 @@ const Servicios = () => {
           />
         </div>
 
-        <h3 className="text-lg font-semibold mt-4 mb-2">Empleados Asignados</h3>
+        <h3 className="text-lg font-semibold mt-4 mb-2">Empleados Disponibles</h3>
         <div className="mb-4 grid grid-cols-2 md:grid-cols-3 gap-2">
           {empleados.map((empleado) => (
             <label key={empleado.id} className="flex items-center space-x-2">
@@ -261,6 +261,9 @@ const Servicios = () => {
                   <strong>Empleados:</strong> {servicio.empleados && servicio.empleados.length > 0
                     ? servicio.empleados.map((empleado) => empleado.nombre).join(', ')
                     : 'Ninguno'}
+                </p>
+                <p className="text-sm text-gray-500">
+                  <strong>Categoría:</strong> {servicio.categoria}
                 </p>
               </div>
               <div className="space-x-2">

@@ -14,7 +14,7 @@ const VistaCliente = () => {
   const [error, setError] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedServicio, setSelectedServicio] = useState(null);
-  
+  const [filtroCategoria, setFiltroCategoria] = useState('');
   useEffect(() => {
     // Función para obtener información del negocio, servicios y horarios
     const fetchData = async () => {
@@ -52,6 +52,9 @@ const VistaCliente = () => {
     setModalOpen(false);
     setSelectedServicio(null);
   };
+  const serviciosFiltrados = filtroCategoria
+    ? servicios.filter(servicio => servicio.categoria === filtroCategoria)
+    : servicios;
 
   if (loading) {
     return <div className="flex justify-center items-center h-screen">Cargando...</div>;
@@ -66,6 +69,22 @@ const VistaCliente = () => {
       {/* Banner */}
       <div className="mb-6">
         <img src={fondo1} alt="Banner" className="w-full object-cover h-64 rounded-lg shadow-md" />
+      </div>
+      {/* Selección de Categoría */}
+      <div className="mb-4">
+        <label className="text-gray-700 font-semibold mr-2">Filtrar por categoría:</label>
+        <select
+          value={filtroCategoria}
+          onChange={(e) => setFiltroCategoria(e.target.value)}
+          className="border-gray-300 rounded-md p-2"
+        >
+          <option value="">Todas</option>
+          {[...new Set(servicios.map((servicio) => servicio.categoria))].map((categoria) => (
+            <option key={categoria} value={categoria}>
+              {categoria}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Parte principal de la vista */}
@@ -85,7 +104,7 @@ const VistaCliente = () => {
           <div className="mt-6">
             <h3 className="text-2xl font-semibold mb-4 text-gray-800">Servicios</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {servicios.map((servicio) => (
+            {serviciosFiltrados.map((servicio) => (
                 <div key={servicio.id} className="bg-[#3b3b3b] text-white p-6 rounded-md shadow-lg transform hover:scale-105 transition-transform duration-300">
                   <h4 className="text-xl font-bold mb-2">{servicio.nombre}</h4>
                   <p className="mb-2"><strong>Duración:</strong> {servicio.duracion} minutos</p>
