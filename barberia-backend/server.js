@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/database'); // Configuración de la base de 
 const bodyParser = require('body-parser');
+const path = require('path');
+
 require('./models/associations'); // Asociaciones entre modelos
 
 // Importa tus modelos explícitamente
@@ -20,7 +22,7 @@ const transbankConfig = require('./config/transbankConfig.js');
 const EmpleadoServicio = require('./models/EmpleadoServicio.js');
 
 
-// Importa tus rutas
+// Importamos las rutas
 const userRoutes = require('./routes/userRoutes');
 const negocioRoutes = require('./routes/negocioRoutes');
 const reservaRoutes = require('./routes/reservaRoutes');
@@ -32,6 +34,9 @@ const disponibilidadEmpleadoRoutes = require('./routes/disponibilidadEmpleadoRou
 const authMiddleware = require('./middleware/authMiddleware');
 const eventoRoutes = require('./routes/eventoRoutes');
 const app = express();
+
+// Importa la ruta de reserva de horario
+const reservaHorarioRoutes = require('./routes/reservaHorarioRoutes');
 
 // Middleware para procesar JSON y habilitar CORS
 app.use(cors());
@@ -45,11 +50,17 @@ app.use('/api/reservas', reservaRoutes);
 app.use('/api/empleados', empleadoRoutes);
 app.use('/api/servicios', servicioRoutes);
 app.use('/api/pagos', pagoRoutes);
-app.use('/api/disponibilidadEmpleado', disponibilidadEmpleadoRoutes);
+app.use('/api/disponibilidad-empleado', disponibilidadEmpleadoRoutes);
 app.use('/api/horarios', horarioRoutes);
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/eventos', eventoRoutes);
 app.use('/api/reservas', authMiddleware, reservaRoutes);
+
+// Registrar la ruta de reserva de horario
+app.use('/api/reserva-horario', reservaHorarioRoutes);
+
+// Servir archivos estáticos desde la carpeta 'uploads'
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Función asincrónica para sincronizar la base de datos en el orden correcto
 const syncDatabase = async () => {
