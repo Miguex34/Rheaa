@@ -1,12 +1,13 @@
 const { EmpleadoNegocio } = require('../models/EmpleadoNegocio');
-const { negocio } = require('../models/Negocio');
+const  Negocio  = require('../models/Negocio');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const db = require('../config/database');
 const sendEmail = require('../utils/sendEmail');
 const dayjs = require('dayjs');
 const  Usuario  = require('../models/Usuario');
-
+const Servicio = require('../models/Servicio');
+const EmpleadoServicio = require('../models/EmpleadoServicio');
 
 exports.createEmpleado = async (req, res) => {
   const { id_usuario, id_negocio, cargo } = req.body;
@@ -25,9 +26,30 @@ exports.createEmpleado = async (req, res) => {
 
 exports.getEmpleadosByNegocio = async (req, res) => {
   try {
-    const empleados = await EmpleadoNegocio.findAll({ where: { id_negocio: req.params.id_negocio } });
+    const { id_negocio } = req.params;
+
+    // Encuentra empleados asociados con el negocio específico
+    const empleados = await Usuario.findAll({
+      include: [
+        {
+          model: Negocio,
+          as: 'empleadoNegocio',
+          where: { id: id_negocio },
+          attributes: []
+        },
+        {
+          model: Servicio,
+          as: 'servicios', 
+          through: { model: EmpleadoServicio, attributes: [] },
+          attributes: ['id', 'nombre', 'duracion'],
+        },
+      ],
+      attributes: ['id', 'nombre', 'correo', 'cargo'],
+    });
+
     res.json(empleados);
   } catch (error) {
+    console.error('Error al obtener empleados:', error);
     res.status(500).json({ error: 'Error al obtener empleados' });
   }
 };
@@ -101,11 +123,11 @@ exports.crearEmpleado = async (req, res) => {
     );
     const id_usuario = newUser;
     
-    // Asignar el empleado a empleado_negocio
+    // Asignar el empleado a la tabla empleado_negocio incluyendo id_empleado
     await db.query(
-      'INSERT INTO empleado_negocio (id_usuario, id_negocio) VALUES (:id_usuario, :id_negocio)',
+      'INSERT INTO empleado_negocio (id_usuario, id_negocio, id_empleado) VALUES (:id_usuario, :id_negocio, :id_empleado)',
       {
-        replacements: { id_usuario, id_negocio }
+        replacements: { id_usuario, id_negocio, id_empleado: id_usuario } // Agregar id_empleado igual a id_usuario
       }
     );
 

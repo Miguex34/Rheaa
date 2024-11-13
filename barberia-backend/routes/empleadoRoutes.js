@@ -5,7 +5,7 @@ const empleadoController = require('../controllers/empleadoController');
 
 // Rutas de empleados
 router.post('/', empleadoController.createEmpleado);
-router.get('/negocio/:id_negocio', empleadoController.getEmpleadosByNegocio);
+router.get('/negocio/:id_negocio/empleados', authMiddleware, empleadoController.getEmpleadosByNegocio);
 router.get('/:id', empleadoController.getEmpleadoById);
 router.get('/', empleadoController.getAllEmpleados);
 

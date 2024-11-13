@@ -1,4 +1,3 @@
-// src/components/Register.js
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -10,22 +9,46 @@ const Register = () => {
     contraseña: '',
     telefono: '',
     nombreNegocio: '',
+    correoNegocio: '', // Campo para el correo del negocio
     telefonoNegocio: '',
-    direccionNegocio: '',
-    horario_inicio: '',
-    horario_cierre: '',
+    direccionNegocio: '', // Campo para la dirección del negocio
     cargo: 'Dueño',
   });
 
+  const [suggestions, setSuggestions] = useState([]);
   const [errors, setErrors] = useState({});
   const [responseMessage, setResponseMessage] = useState('');
   const navigate = useNavigate();
 
+  // Función para buscar direcciones en Nominatim
+  const searchAddress = async (query) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/address?query=${encodeURIComponent(query)}`);
+      const data = await response.json();
+      setSuggestions(data);
+    } catch (error) {
+      console.error('Error al buscar dirección:', error);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+
+    // Buscar direcciones solo si el campo de dirección cambia y tiene al menos 3 caracteres
+    if (name === 'direccionNegocio' && value.length > 2) {
+      searchAddress(value);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setFormData({ ...formData, direccionNegocio: suggestion.display_name });
+    setSuggestions([]); // Limpia las sugerencias al seleccionar una
+  };
+
   const validateForm = () => {
     const newErrors = {};
-
     const nameRegex = /^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$/;
-    const addressRegex = /^[a-zA-Z0-9\sáéíóúÁÉÍÓÚñÑ]+$/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.(com|org|net|edu)$/;
     const passwordRegex = /^\S+$/;
     const phoneRegex = /^\d+$/;
@@ -42,36 +65,11 @@ const Register = () => {
     if (!phoneRegex.test(formData.telefono) || formData.telefono.length !== 9) {
       newErrors.telefono = 'El teléfono debe tener exactamente 9 dígitos.';
     }
-    if (!phoneRegex.test(formData.telefonoNegocio || formData.telefono.length !== 9)) {
-      newErrors.telefonoNegocio = 'El teléfono del negocio solo puede contener números.';
+    if (!phoneRegex.test(formData.telefonoNegocio) || formData.telefonoNegocio.length !== 9) {
+      newErrors.telefonoNegocio = 'El teléfono del negocio debe tener exactamente 9 dígitos.';
     }
-    if (!addressRegex.test(formData.direccionNegocio)) {
-      newErrors.direccionNegocio = 'La dirección solo puede contener letras, números y espacios.';
-    }
-    if (formData.horario_inicio >= formData.horario_cierre) {
-      newErrors.horario_cierre = 'El horario de cierre debe ser después del de apertura.';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    if ((name === 'nombre' || name === 'nombreNegocio') && !/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]*$/.test(value)) {
-      return;
-    }
-
-    if (name === 'telefono' && (value.length > 9 || !/^\d*$/.test(value))) {
-      return;
-    }
-
-    if (name === 'telefonoNegocio' && !/^\d*$/.test(value)) {
-      return;
-    }
-
-    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e) => {
@@ -163,6 +161,16 @@ const Register = () => {
               {errors.nombreNegocio && <p className="text-red-500">{errors.nombreNegocio}</p>}
 
               <input
+                type="email"
+                name="correoNegocio"
+                placeholder="Correo del Negocio"
+                value={formData.correoNegocio}
+                onChange={handleChange}
+                className="w-full p-3 border rounded-md focus:ring-2 focus:ring-purple-500"
+              />
+              {errors.correoNegocio && <p className="text-red-500">{errors.correoNegocio}</p>}
+
+              <input
                 type="text"
                 name="direccionNegocio"
                 placeholder="Dirección del Negocio"
@@ -170,25 +178,20 @@ const Register = () => {
                 onChange={handleChange}
                 className="w-full p-3 border rounded-md focus:ring-2 focus:ring-purple-500"
               />
+              {suggestions.length > 0 && (
+                <ul className="border border-gray-300 rounded-md mt-2 bg-white max-h-48 overflow-y-auto">
+                  {suggestions.map((suggestion, index) => (
+                    <li
+                      key={index}
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      className="p-2 hover:bg-gray-100 cursor-pointer"
+                    >
+                      {suggestion.display_name}
+                    </li>
+                  ))}
+                </ul>
+              )}
               {errors.direccionNegocio && <p className="text-red-500">{errors.direccionNegocio}</p>}
-
-              <input
-                type="time"
-                name="horario_inicio"
-                value={formData.horario_inicio}
-                onChange={handleChange}
-                className="w-full p-3 border rounded-md focus:ring-2 focus:ring-purple-500"
-              />
-              {errors.horario_inicio && <p className="text-red-500">{errors.horario_inicio}</p>}
-
-              <input
-                type="time"
-                name="horario_cierre"
-                value={formData.horario_cierre}
-                onChange={handleChange}
-                className="w-full p-3 border rounded-md focus:ring-2 focus:ring-purple-500"
-              />
-              {errors.horario_cierre && <p className="text-red-500">{errors.horario_cierre}</p>}
 
               <input
                 type="tel"

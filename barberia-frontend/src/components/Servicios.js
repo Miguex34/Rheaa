@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // Importar useNavigate
 
 const Servicios = () => {
   const [form, setForm] = useState({
@@ -14,38 +15,46 @@ const Servicios = () => {
   const [servicios, setServicios] = useState([]);
   const [empleados, setEmpleados] = useState([]);
   const [editingId, setEditingId] = useState(null);
+  const navigate = useNavigate();
+  const [user, setUser] = useState({ nombre: '', correo: '', id_negocio: null });
 
   useEffect(() => {
-    cargarServicios();
-    cargarEmpleados();
-    obtenerIdNegocio();
-  }, []);
-
-  // Cargar el ID de negocio del usuario autenticado
-  const obtenerIdNegocio = async () => {
     const token = localStorage.getItem('token');
-    if (!token) return;
-
-    try {
-      const response = await axios.get('http://localhost:5000/api/users/me', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const negocio = response.data.negocio;
-      if (negocio && negocio.id) {
-        setForm((prevForm) => ({ ...prevForm, id_negocio: negocio.id }));
-      } else {
-        console.error('No se encontró un negocio asociado al usuario.');
-      }
-    } catch (error) {
-      console.error('Error al obtener el usuario:', error);
+    if (!token) {
+      navigate('/login');
+      return;
     }
-  };
+  
+    axios
+      .get('http://localhost:5000/api/users/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        console.log('Usuario autenticado:', response.data);
+        setUser(response.data);
+  
+        const negocio = response.data.negocio;
+        if (negocio && negocio.id) {
+          console.log('Cargando datos para el negocio:', negocio.id);
+          setForm((prevForm) => ({ ...prevForm, id_negocio: negocio.id }));
+          cargarServicios(negocio.id);
+          cargarEmpleados(negocio.id);
+        } else {
+          console.error('El usuario no tiene un negocio asociado:', negocio);
+          alert('No se encontró un negocio asociado. Verifica tus datos.');
+        }
+      })
+      .catch((error) => {
+        console.error('Error al obtener el usuario:', error);
+        localStorage.removeItem('token');
+        navigate('/login');
+      });
+  }, [navigate]);
 
-  // Cargar lista de servicios
-  const cargarServicios = async () => {
+  const cargarServicios = async (id_negocio) => {
     const token = localStorage.getItem('token');
     try {
-      const response = await axios.get('http://localhost:5000/api/servicios', {
+      const response = await axios.get(`http://localhost:5000/api/servicios/negocio/${id_negocio}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setServicios(response.data);
@@ -54,11 +63,10 @@ const Servicios = () => {
     }
   };
 
-  // Cargar lista de empleados
-  const cargarEmpleados = async () => {
+  const cargarEmpleados = async (id_negocio) => {
     const token = localStorage.getItem('token');
     try {
-      const response = await axios.get('http://localhost:5000/api/empleados', {
+      const response = await axios.get(`http://localhost:5000/api/empleados/negocio/${id_negocio}/empleados`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setEmpleados(response.data);
@@ -78,27 +86,26 @@ const Servicios = () => {
 
   // Manejar selección de empleados
   const handleEmpleadoSelect = (e) => {
-    const { value, checked } = e.target;
-    const empleadoId = parseInt(value, 10);
-    setForm((prevForm) => ({
-      ...prevForm,
-      id_empleados: checked
-        ? [...prevForm.id_empleados, empleadoId]
-        : prevForm.id_empleados.filter((id) => id !== empleadoId),
-    }));
+    const empleadoId = parseInt(e.target.value);
+    setForm((prevForm) => {
+      const nuevosEmpleados = prevForm.id_empleados.includes(empleadoId)
+        ? prevForm.id_empleados.filter((id) => id !== empleadoId)
+        : [...prevForm.id_empleados, empleadoId];
+      return { ...prevForm, id_empleados: nuevosEmpleados };
+    });
   };
 
   // Crear o actualizar un servicio
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
-
+  
     try {
       const url = editingId
         ? `http://localhost:5000/api/servicios/${editingId}`
         : 'http://localhost:5000/api/servicios';
       const method = editingId ? 'put' : 'post';
-
+  
       await axios[method](
         url,
         {
@@ -113,7 +120,7 @@ const Servicios = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      cargarServicios();
+      cargarServicios(form.id_negocio);
       setForm({
         nombre: '',
         descripcion: '',
@@ -131,16 +138,16 @@ const Servicios = () => {
 
   // Cargar datos en el formulario para edición
   const handleEdit = (servicio) => {
+    setEditingId(servicio.id);
     setForm({
       nombre: servicio.nombre,
       descripcion: servicio.descripcion,
       duracion: servicio.duracion,
       precio: servicio.precio,
       categoria: servicio.categoria,
-      id_empleados: servicio.empleados?.map((emp) => emp.id) || [],
-      id_negocio: servicio.id_negocio,
+      id_empleados: servicio.empleados ? servicio.empleados.map((empleado) => empleado.id) : [],
+      id_negocio: form.id_negocio,
     });
-    setEditingId(servicio.id);
   };
 
   // Eliminar un servicio
@@ -150,12 +157,12 @@ const Servicios = () => {
       await axios.delete(`http://localhost:5000/api/servicios/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      cargarServicios();
+      // Eliminar el servicio de la lista sin recargar todos los servicios
+      setServicios((prevServicios) => prevServicios.filter(servicio => servicio.id !== id));
     } catch (error) {
       console.error('Error al eliminar el servicio:', error);
     }
   };
-
   return (
     <div className="container mx-auto p-6 bg-white shadow-lg rounded-lg">
       <h2 className="text-3xl font-bold mb-6 text-center text-blue-600">Gestión de Servicios</h2>
@@ -188,15 +195,18 @@ const Servicios = () => {
         <div className="mb-4 grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Duración (minutos)</label>
-            <input
-              type="number"
+            <select
               name="duracion"
               value={form.duracion}
               onChange={handleChange}
-              placeholder="Duración en minutos"
               required
               className="mt-1 p-2 border border-gray-300 rounded w-full"
-            />
+            >
+              <option value="">Seleccionar duración</option>
+              <option value="30">30 minutos</option>
+              <option value="60">60 minutos</option>
+              <option value="120">120 minutos</option>
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Precio ($)</label>

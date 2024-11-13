@@ -58,32 +58,50 @@ exports.updateServicio = async (req, res) => {
   const { nombre, descripcion, duracion, precio, categoria, id_negocio, id_empleados } = req.body;
 
   try {
+    // Verificar si el servicio existe
     const servicio = await Servicio.findByPk(id);
     if (!servicio) {
       return res.status(404).json({ message: 'Servicio no encontrado' });
     }
 
+    // Actualizar el servicio
     await servicio.update({
       nombre,
       descripcion,
       duracion,
       precio,
       categoria,
-      id_negocio
+      id_negocio,
     });
 
     // Actualizar las asociaciones de empleados
-    await EmpleadoServicio.destroy({ where: { id_servicio: id } });
-
     if (id_empleados && Array.isArray(id_empleados) && id_empleados.length > 0) {
+      // Eliminar las asociaciones antiguas y añadir nuevas
+      await EmpleadoServicio.destroy({ where: { id_servicio: id } });
+
       const empleadoServicioData = id_empleados.map((id_empleado) => ({
         id_servicio: id,
         id_empleado,
       }));
       await EmpleadoServicio.bulkCreate(empleadoServicioData);
+    } else {
+      // Si no hay empleados asociados, eliminamos las asociaciones existentes
+      await EmpleadoServicio.destroy({ where: { id_servicio: id } });
     }
 
-    res.status(200).json(servicio);
+    // Consultar el servicio actualizado con sus empleados
+    const servicioActualizado = await Servicio.findByPk(id, {
+      include: [
+        {
+          model: Usuario,
+          as: 'empleados', // Alias correcto para coincidir con `getServiciosByNegocio`
+          attributes: ['id', 'nombre', 'correo', 'cargo'],
+          through: { attributes: [] },
+        },
+      ],
+    });
+
+    res.status(200).json(servicioActualizado);
   } catch (error) {
     console.error('Error al actualizar el servicio:', error);
     res.status(500).json({ error: 'Error al actualizar el servicio' });
@@ -193,9 +211,21 @@ exports.deleteServicio = async (req, res) => {
 
 exports.getServiciosByNegocio = async (req, res) => {
   try {
-    const servicios = await Servicio.findAll({ where: { id_negocio: req.params.id_negocio } });
+    const { id_negocio } = req.params;
+    const servicios = await Servicio.findAll({
+      where: { id_negocio },
+      include: [
+        {
+          model: Usuario,
+          as: 'empleados', // Asegúrate de que el alias coincide con el alias en las asociaciones
+          through: { model: EmpleadoServicio, attributes: [] },
+          attributes: ['id', 'nombre', 'correo', 'cargo'],
+        },
+      ],
+    });
     res.json(servicios);
   } catch (error) {
+    console.error('Error al obtener los servicios:', error);
     res.status(500).json({ error: 'Error al obtener los servicios' });
   }
 };

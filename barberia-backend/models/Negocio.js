@@ -23,11 +23,11 @@ const Negocio = sequelize.define('Negocio', {
   },
   horario_inicio: {
     type: DataTypes.TIME,
-    allowNull: false,
+    allowNull: true, 
   },
   horario_cierre: {
     type: DataTypes.TIME,
-    allowNull: false,
+    allowNull: true, 
   },
   correo: {
     type: DataTypes.STRING,

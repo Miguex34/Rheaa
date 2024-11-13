@@ -32,7 +32,7 @@ const disponibilidadEmpleadoRoutes = require('./routes/disponibilidadEmpleadoRou
 const authMiddleware = require('./middleware/authMiddleware');
 const eventoRoutes = require('./routes/eventoRoutes');
 const app = express();
-
+const proxyRoutes = require('./routes/proxyRoutes');
 // Middleware para procesar JSON y habilitar CORS
 app.use(cors());
 app.use(express.json());
@@ -50,6 +50,7 @@ app.use('/api/horarios', horarioRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use('/api/eventos', eventoRoutes);
 app.use('/api/reservas', authMiddleware, reservaRoutes);
+app.use(proxyRoutes);
 
 // Función asincrónica para sincronizar la base de datos en el orden correcto
 const syncDatabase = async () => {

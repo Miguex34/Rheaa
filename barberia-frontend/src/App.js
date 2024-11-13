@@ -17,6 +17,7 @@ import './index.css';
 import Reserva from './components/Reserva';
 import Disponibilidad from './components/Disponibilidad';
 
+
 // Función PrivateRoute para proteger rutas privadas
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token');

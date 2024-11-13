@@ -59,8 +59,8 @@ Usuario.hasMany(Reserva, { foreignKey: 'id_cliente', as: 'reservas' });
 Reserva.belongsTo(Usuario, { foreignKey: 'id_cliente' });
 
 // Asociación: Un Usuario tiene muchos Eventos
-Usuario.hasMany(Evento, { foreignKey: 'userId', as: 'eventos' });
-Evento.belongsTo(Usuario, { foreignKey: 'userId', as: 'usuario' });
+Negocio.hasMany(Evento, { foreignKey: 'id_negocio', as: 'eventos' });
+Evento.belongsTo(Negocio, { foreignKey: 'id_negocio', as: 'negocio' });
 
 // Asociación: Relación entre Servicio y Empleado a través de EmpleadoServicio
 // associations.js
@@ -77,6 +77,20 @@ Usuario.belongsToMany(Servicio, {
   foreignKey: 'id_empleado', 
   otherKey: 'id_servicio',
   as: 'servicios'
+});
+
+Usuario.belongsToMany(Negocio, {
+  through: EmpleadoNegocio,
+  foreignKey: 'id_empleado',
+  otherKey: 'id_negocio',
+  as: 'empleadoNegocio'
+});
+
+Negocio.belongsToMany(Usuario, {
+  through: EmpleadoNegocio,
+  foreignKey: 'id_negocio',
+  otherKey: 'id_empleado',
+  as: 'empleadosNegocio'
 });
 
 

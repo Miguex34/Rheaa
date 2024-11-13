@@ -14,8 +14,6 @@ const categorias = [
   'Depilación',
   'Tratamientos Faciales'
 ];
-
-
 const Cuenta = () => {
   const navigate = useNavigate();
 

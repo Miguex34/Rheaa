@@ -13,11 +13,10 @@ const register = async (req, res) => {
     contraseña,
     telefono,
     nombreNegocio,
+    correoNegocio, // Nuevo campo
     telefonoNegocio,
     direccionNegocio,
-    horario_inicio,
-    horario_cierre,
-    cargo, // Ahora cargo en lugar de rol
+    cargo,
   } = req.body;
 
   try {
@@ -41,7 +40,7 @@ const register = async (req, res) => {
       correo,
       contrasena_hash: hashedPassword,
       telefono,
-      cargo, // Asegúrate de incluir el rol aquí
+      cargo,
     });
 
     console.log('Usuario creado:', nuevoUsuario);
@@ -49,13 +48,10 @@ const register = async (req, res) => {
     // Crear el negocio relacionado con el usuario
     const nuevoNegocio = await Negocio.create({
       nombre: nombreNegocio,
+      correo: correoNegocio, // Guardar correo del negocio
       telefono: telefonoNegocio,
       direccion: direccionNegocio,
-      horario_inicio,
-      horario_cierre,
-      correo: nuevoUsuario.correo,
       id_dueno: nuevoUsuario.id,
-      
     });
 
     // Crear la relación entre el usuario y el negocio (dueño de negocio)
@@ -64,14 +60,16 @@ const register = async (req, res) => {
       id_negocio: nuevoNegocio.id,
     });
 
-    // Generar un token JWT para el usuario recién registrado
-    const token = jwt.sign({ id: nuevoUsuario.id, correo: nuevoUsuario.correo }, process.env.JWT_SECRET, {
-      expiresIn: '1d',
-    });
     // Crear relación entre usuario y negocio
     await EmpleadoNegocio.create({
       id_usuario: nuevoUsuario.id,
-      id_negocio: nuevoNegocio.id
+      id_negocio: nuevoNegocio.id,
+      id_empleado: nuevoUsuario.id
+    });
+
+    // Generar un token JWT para el usuario recién registrado
+    const token = jwt.sign({ id: nuevoUsuario.id, correo: nuevoUsuario.correo }, process.env.JWT_SECRET, {
+      expiresIn: '1d',
     });
 
     return res.status(201).json({ message: 'Usuario y negocio creados con éxito', token });

@@ -41,10 +41,12 @@ router.put(
 // Ruta para eliminar un servicio con autenticación
 router.delete('/:id', authMiddleware, servicioController.deleteServicio);
 
+
+
 // Ruta para obtener empleados asignados a un servicio específico
 router.get('/servicios/:id_servicio/empleados', authMiddleware, servicioController.getEmpleadosByServicio);
 
-router.get('/negocio/:id_negocio', servicioController.getServiciosByNegocio);
+router.get('/negocio/:id_negocio',  servicioController.getServiciosByNegocio);
 
 module.exports = router;
 

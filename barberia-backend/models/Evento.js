@@ -1,29 +1,38 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 const Usuario = require('./Usuario');
+const Negocio = require('./Negocio');
 
 const Evento = sequelize.define('Evento', {
-  title: {
+  titulo: {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  start: {
+  inicio: {
     type: DataTypes.DATE,
     allowNull: false,
   },
-  end: {
+  fin: {
     type: DataTypes.DATE,
     allowNull: false,
   },
-  description: {
+  descripcion: {
     type: DataTypes.TEXT,
     allowNull: true,
   },
-  category: {
+  categoria: {
     type: DataTypes.STRING,
-    allowNull: true, // Categoría del evento (Cita importante, Tarea administrativa, etc.)
+    allowNull: true, // Categoría del evento (Ej. Cumpleaños, Tarea administrativa, etc.)
   },
-  userId: {
+  id_negocio: {
+    type: DataTypes.BIGINT,
+    allowNull: false,
+    references: {
+      model: Negocio, // Hace referencia al modelo Negocio
+      key: 'id',
+    },
+  },
+  id_usuario: {
     type: DataTypes.BIGINT,
     allowNull: false,
     references: {
@@ -31,6 +40,9 @@ const Evento = sequelize.define('Evento', {
       key: 'id',
     },
   },
+}, {
+  tableName: 'evento',
+  timestamps: false,
 });
 
 module.exports = Evento;

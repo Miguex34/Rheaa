@@ -1,8 +1,8 @@
-// src/components/VistaCliente.js
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import fondo1 from '../assets/images/fondo1.png';
+
 const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
 const VistaCliente = () => {
@@ -15,6 +15,7 @@ const VistaCliente = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedServicio, setSelectedServicio] = useState(null);
   const [filtroCategoria, setFiltroCategoria] = useState('');
+
   useEffect(() => {
     // Función para obtener información del negocio, servicios y horarios
     const fetchData = async () => {
@@ -40,8 +41,6 @@ const VistaCliente = () => {
 
     fetchData();
   }, [nombre]);
-  
-
 
   const handleOpenModal = (servicio) => {
     setSelectedServicio(servicio);
@@ -52,6 +51,7 @@ const VistaCliente = () => {
     setModalOpen(false);
     setSelectedServicio(null);
   };
+
   const serviciosFiltrados = filtroCategoria
     ? servicios.filter(servicio => servicio.categoria === filtroCategoria)
     : servicios;
@@ -104,7 +104,7 @@ const VistaCliente = () => {
           <div className="mt-6">
             <h3 className="text-2xl font-semibold mb-4 text-gray-800">Servicios</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {serviciosFiltrados.map((servicio) => (
+              {serviciosFiltrados.map((servicio) => (
                 <div key={servicio.id} className="bg-[#3b3b3b] text-white p-6 rounded-md shadow-lg transform hover:scale-105 transition-transform duration-300">
                   <h4 className="text-xl font-bold mb-2">{servicio.nombre}</h4>
                   <p className="mb-2"><strong>Duración:</strong> {servicio.duracion} minutos</p>
@@ -177,7 +177,6 @@ const VistaCliente = () => {
 };
 
 export default VistaCliente;
-
 
 
 
