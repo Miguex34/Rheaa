@@ -6,7 +6,13 @@ const reservaHorarioController = require('../controllers/reservaHorarioControlle
 // Ruta para obtener el calendario de disponibilidad de un negocio
 router.get('/calendario/:negocioId', reservaHorarioController.obtenerCalendarioDisponibilidad);
 
-// Ruta para obtener bloques de horarios disponibles
+// Ruta para obtener bloques de horarios disponibles para una fecha específica
 router.get('/bloques/:negocioId/:servicioId/:fecha', reservaHorarioController.obtenerBloquesDisponibles);
+
+// Nueva Ruta para obtener disponibilidad general (todos los empleados disponibles en el negocio)
+router.get('/disponibilidad/general/:negocioId/:servicioId', reservaHorarioController.obtenerDisponibilidadGeneral);
+
+// Nueva Ruta para obtener disponibilidad de un empleado específico
+router.get('/disponibilidad/empleado/:negocioId/:servicioId/:empleadoId', reservaHorarioController.obtenerDisponibilidadEmpleado);
 
 module.exports = router;

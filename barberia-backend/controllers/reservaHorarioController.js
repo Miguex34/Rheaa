@@ -8,6 +8,184 @@ require('moment/locale/es'); // Cargar configuración en español para moment
 moment.locale('es'); // Configurar moment para usar el español
 const { Op } = require('sequelize');
 
+// Funcion para obtener la disponibilidad de TODOS los empleados.
+exports.obtenerDisponibilidadGeneral = async (req, res) => {
+    const { negocioId, servicioId } = req.params;
+
+    try {
+        const diasDisponibles = [];
+
+        // Obtener el horario general del negocio
+        const horariosNegocio = await HorarioNegocio.findAll({
+            where: { id_negocio: negocioId, activo: true },
+        });
+
+        // Obtener la duración del servicio
+        const servicio = await Servicio.findByPk(servicioId);
+        if (!servicio) {
+            return res.status(404).json({ message: 'Servicio no encontrado' });
+        }
+        const duracionServicio = servicio.duracion;
+
+        // Iterar sobre las próximas 4 semanas (28 días)
+        for (let i = 0; i < 28; i++) {
+            const fecha = moment().add(i, 'days');
+            const diaSemana = fecha.format('dddd');
+
+            // Verificar si el negocio está abierto en este día de la semana
+            const horarioNegocio = horariosNegocio.find(horario => horario.dia_semana.toLowerCase() === diaSemana.toLowerCase());
+            if (!horarioNegocio) {
+                diasDisponibles.push({ fecha: fecha.format('YYYY-MM-DD'), disponible: false });
+                continue;
+            }
+
+            // Verificar disponibilidad de empleados para este día
+            const empleadosDisponibles = await DisponibilidadEmpleado.findAll({
+                where: {
+                    id_negocio: negocioId,
+                    dia_semana: diaSemana,
+                    disponible: true
+                },
+            });
+
+            // Construir bloques de horario según la disponibilidad de cada empleado
+            const bloquesPorEmpleado = [];
+            for (const empleado of empleadosDisponibles) {
+                const bloquesEmpleado = [];
+
+                let horaInicio = moment(`${fecha.format('YYYY-MM-DD')} ${empleado.hora_inicio}`);
+                const horaFin = moment(`${fecha.format('YYYY-MM-DD')} ${empleado.hora_fin}`);
+
+                while (horaInicio.clone().add(duracionServicio, 'minutes').isSameOrBefore(horaFin)) {
+                    const horaFinBloque = horaInicio.clone().add(duracionServicio, 'minutes');
+
+                    // Verificar si ya existe una reserva en este bloque
+                    const reservaExistente = await Reserva.findOne({
+                        where: {
+                            id_negocio: negocioId,
+                            id_empleado: empleado.id_usuario,
+                            fecha: {
+                                [Op.between]: [horaInicio.toDate(), horaFinBloque.toDate()]
+                            }
+                        }
+                    });
+
+                    if (!reservaExistente) {
+                        bloquesEmpleado.push({
+                            hora_inicio: horaInicio.format('HH:mm'),
+                            hora_fin: horaFinBloque.format('HH:mm'),
+                        });
+                    }
+                    horaInicio = horaFinBloque;
+                }
+                if (bloquesEmpleado.length > 0) {
+                    bloquesPorEmpleado.push({
+                        empleado: empleado.id_usuario,
+                        bloques: bloquesEmpleado,
+                    });
+                }
+            }
+
+            diasDisponibles.push({
+                fecha: fecha.format('YYYY-MM-DD'),
+                disponible: bloquesPorEmpleado.length > 0,
+                bloquesPorEmpleado,
+            });
+        }
+
+        res.json(diasDisponibles);
+    } catch (error) {
+        console.error("Error al obtener disponibilidad general:", error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Funcion para obtener la disponibilidad de un empleado en especifico.
+exports.obtenerDisponibilidadEmpleado = async (req, res) => {
+    const { negocioId, servicioId, empleadoId } = req.params;
+
+    try {
+        const diasDisponibles = [];
+
+        // Obtener el horario general del negocio
+        const horariosNegocio = await HorarioNegocio.findAll({
+            where: { id_negocio: negocioId, activo: true },
+        });
+
+        // Obtener la duración del servicio
+        const servicio = await Servicio.findByPk(servicioId);
+        if (!servicio) {
+            return res.status(404).json({ message: 'Servicio no encontrado' });
+        }
+        const duracionServicio = servicio.duracion;
+
+        // Obtener la disponibilidad específica del empleado
+        const disponibilidadEmpleado = await DisponibilidadEmpleado.findAll({
+            where: { id_usuario: empleadoId, id_negocio: negocioId, disponible: true },
+        });
+
+        // Iterar sobre los próximos 28 días
+        for (let i = 0; i < 28; i++) {
+            const fecha = moment().add(i, 'days');
+            const diaSemana = fecha.format('dddd');
+
+            // Verificar si el negocio está abierto en este día
+            const horarioNegocio = horariosNegocio.find(horario => horario.dia_semana.toLowerCase() === diaSemana.toLowerCase());
+            if (!horarioNegocio) {
+                diasDisponibles.push({ fecha: fecha.format('YYYY-MM-DD'), disponible: false });
+                continue;
+            }
+
+            // Filtrar la disponibilidad del empleado para el día de la semana actual
+            const horarioEmpleado = disponibilidadEmpleado.find(empleado => empleado.dia_semana.toLowerCase() === diaSemana.toLowerCase());
+            if (!horarioEmpleado) {
+                diasDisponibles.push({ fecha: fecha.format('YYYY-MM-DD'), disponible: false });
+                continue;
+            }
+
+            // Crear bloques de tiempo disponibles para el empleado en este día
+            const bloquesEmpleado = [];
+            let horaInicio = moment(`${fecha.format('YYYY-MM-DD')} ${horarioEmpleado.hora_inicio}`);
+            const horaFin = moment(`${fecha.format('YYYY-MM-DD')} ${horarioEmpleado.hora_fin}`);
+
+            while (horaInicio.clone().add(duracionServicio, 'minutes').isSameOrBefore(horaFin)) {
+                const horaFinBloque = horaInicio.clone().add(duracionServicio, 'minutes');
+
+                // Verificar si el bloque ya está reservado
+                const reservaExistente = await Reserva.findOne({
+                    where: {
+                        id_negocio: negocioId,
+                        id_empleado: empleadoId,
+                        fecha: {
+                            [Op.between]: [horaInicio.toDate(), horaFinBloque.toDate()]
+                        }
+                    }
+                });
+
+                if (!reservaExistente) {
+                    bloquesEmpleado.push({
+                        hora_inicio: horaInicio.format('HH:mm'),
+                        hora_fin: horaFinBloque.format('HH:mm'),
+                    });
+                }
+                horaInicio = horaFinBloque;
+            }
+
+            diasDisponibles.push({
+                fecha: fecha.format('YYYY-MM-DD'),
+                disponible: bloquesEmpleado.length > 0,
+                bloques: bloquesEmpleado,
+            });
+        }
+
+        res.json(diasDisponibles);
+    } catch (error) {
+        console.error("Error al obtener disponibilidad de empleado:", error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
 // Función para obtener el calendario de disponibilidad de un negocio específico para las próximas 4 semanas (patrón semanal)
 exports.obtenerCalendarioDisponibilidad = async (req, res) => {
     const { negocioId } = req.params;
