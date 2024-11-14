@@ -8,6 +8,7 @@ const dayjs = require('dayjs');
 const  Usuario  = require('../models/Usuario');
 const Servicio = require('../models/Servicio');
 const EmpleadoServicio = require('../models/EmpleadoServicio');
+const { Op } = require('sequelize');
 
 exports.createEmpleado = async (req, res) => {
   const { id_usuario, id_negocio, cargo } = req.body;
@@ -28,7 +29,7 @@ exports.getEmpleadosByNegocio = async (req, res) => {
   try {
     const { id_negocio } = req.params;
 
-    // Encuentra empleados asociados con el negocio específico
+    // Encuentra empleados asociados con el negocio específico y con teléfono no nulo
     const empleados = await Usuario.findAll({
       include: [
         {
@@ -44,7 +45,11 @@ exports.getEmpleadosByNegocio = async (req, res) => {
           attributes: ['id', 'nombre', 'duracion'],
         },
       ],
-      attributes: ['id', 'nombre', 'correo', 'cargo'],
+      // Filtra para que solo devuelva empleados con teléfono no nulo
+      where: {
+        telefono: { [Op.ne]: null }
+      },
+      attributes: ['id', 'nombre', 'correo', 'telefono', 'cargo', 'foto_perfil'],
     });
 
     res.json(empleados);
