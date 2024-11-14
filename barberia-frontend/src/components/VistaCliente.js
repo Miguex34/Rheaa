@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate  } from 'react-router-dom';
 import axios from 'axios';
 import fondo1 from '../assets/images/fondo1.png';
+
 const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
 const VistaCliente = () => {
@@ -22,6 +23,9 @@ const VistaCliente = () => {
         // Obtener el negocio por su nombre
         const responseNegocio = await axios.get(`http://localhost:5000/api/negocios/${nombre}`);
         setNegocio(responseNegocio.data);
+
+        // Guardar `negocioId` en `sessionStorage` para uso en otros componentes
+        sessionStorage.setItem('negocioSeleccionado', responseNegocio.data.id);
 
         // Obtener los servicios del negocio usando el ID del negocio
         const responseServicios = await axios.get(`http://localhost:5000/api/servicios/negocio/${responseNegocio.data.id}`);

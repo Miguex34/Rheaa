@@ -5,6 +5,7 @@ const Reserva = require('../models/Reserva');
 const Servicio = require('../models/Servicio');
 const EmpleadoNegocio = require('../models/EmpleadoNegocio');
 const EmpleadoServicio = require('../models/EmpleadoServicio');
+const Usuario = require('../models/Usuario');
 const moment = require('moment');
 require('moment/locale/es'); // Cargar configuración en español para moment
 moment.locale('es'); // Configurar moment para usar el español
@@ -416,5 +417,45 @@ exports.reservarBloqueHorario = async (req, res) => {
     } catch (error) {
         console.error("Error al reservar bloque de horario:", error);
         res.status(500).json({ error: error.message });
+    }
+};
+
+// Función para obtener los empleados disponibles para un negocio y servicio específico
+exports.obtenerEmpleadosDisponibles = async (req, res) => {
+    const { negocioId, servicioId } = req.params;
+
+    try {
+        // Obtener los IDs de empleados que realizan el servicio especificado
+        const empleadosServicio = await EmpleadoServicio.findAll({
+            where: { id_servicio: servicioId },
+            attributes: ['id_empleado']
+        });
+
+        const idsEmpleadosServicio = empleadosServicio.map(empleado => empleado.id_empleado);
+
+        // Obtener los empleados que pertenecen al negocio especificado y que realizan el servicio
+        const empleados = await EmpleadoNegocio.findAll({
+            where: {
+                id_negocio: negocioId,
+                id_usuario: idsEmpleadosServicio
+            },
+            include: [
+                {
+                    model: Usuario,
+                    attributes: ['id', 'nombre']
+                }
+            ]
+        });
+
+        // Formatear la respuesta
+        const resultado = empleados.map(empleado => ({
+            id: empleado.Usuario.id,
+            nombre: empleado.Usuario.nombre
+        }));
+
+        res.json(resultado);
+    } catch (error) {
+        console.error('Error al obtener empleados disponibles:', error);
+        res.status(500).json({ message: 'Error al obtener empleados disponibles' });
     }
 };

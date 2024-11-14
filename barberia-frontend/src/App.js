@@ -18,6 +18,7 @@ import Reserva from './components/Reserva';
 import Disponibilidad from './components/Disponibilidad';
 import PreguntaPreferencia from './components/PreguntaPreferencia';
 import PrimeraHoraDisponible from './components/PrimeraHoraDisponible';
+import ProfesionalEspecifico from './components/ProfesionalEspecifico';
 
 // Función PrivateRoute para proteger rutas privadas
 const PrivateRoute = ({ children }) => {
@@ -44,6 +45,7 @@ const AppContent = () => {
           <Route path="/reserva/:negocioId/:servicioId/:horarioId" element={<Reserva />} />
           <Route path="/pregunta-preferencia" element={<PreguntaPreferencia />} />
           <Route path="/primera-hora-disponible/:servicioId" element={<PrimeraHoraDisponible />} />
+          <Route path="/profesional-especifico/:servicioId" element={<ProfesionalEspecifico />} />
 
 
           {/* Rutas públicas para Login y Registro */}
