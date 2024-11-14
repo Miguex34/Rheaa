@@ -162,11 +162,11 @@ const Cuenta = () => {
     return;
   }
 
-  const descripcionRegex = /^[a-zA-Z0-9\s.,!?'"]+$/;
-  if (!descripcionRegex.test(descripcion)) {
-    alert('La descripción contiene caracteres no permitidos. Solo se permiten letras, números y algunos caracteres comunes.');
-    return;
-  }
+  const descripcionRegex = /^[a-zA-Z0-9\s.,!?'"\u00C0-\u00FF\u00D1\u00F1]+$/;
+if (!descripcionRegex.test(descripcion)) {
+  alert('La descripción contiene caracteres no permitidos. Solo se permiten letras, números y algunos caracteres comunes.');
+  return;
+}
 
     console.log({ categoria, descripcion });
     console.log('Token obtenido:', token);

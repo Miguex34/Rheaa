@@ -98,14 +98,40 @@ const Servicios = () => {
   // Crear o actualizar un servicio
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validaciones
+    const nombreRegex = /^[a-zA-ZñÑ\s]{1,20}$/;
+    const descripcionRegex = /^[a-zA-ZñÑ\s]{1,100}$/;
+    const precioRegex = /^[0-9]+$/;
+    const categoriaRegex = /^[a-zA-ZñÑ\s]+$/;
+
+    if (!nombreRegex.test(form.nombre)) {
+      alert('El nombre solo puede contener letras, con un máximo de 20 caracteres.');
+      return;
+    }
+    if (!descripcionRegex.test(form.descripcion)) {
+      alert('La descripción solo puede contener letras, con un máximo de 100 caracteres.');
+      return;
+    }
+    if (!precioRegex.test(form.precio) || form.precio < 1000 || form.precio > 100000) {
+      alert('El precio solo puede contener números, y debe estar entre 1000 y 100000.');
+      return;
+    }
+    if (!categoriaRegex.test(form.categoria)) {
+      alert('La categoría solo puede contener letras, sin caracteres especiales ni números.');
+      return;
+    }
+    if (form.id_empleados.length === 0) {
+      alert('Debe seleccionar al menos un empleado para el servicio.');
+      return;
+    }
+
     const token = localStorage.getItem('token');
-  
     try {
       const url = editingId
         ? `http://localhost:5000/api/servicios/${editingId}`
         : 'http://localhost:5000/api/servicios';
       const method = editingId ? 'put' : 'post';
-  
       await axios[method](
         url,
         {
@@ -235,9 +261,9 @@ const Servicios = () => {
         </div>
 
         <h3 className="text-lg font-semibold mt-4 mb-2">Empleados Disponibles</h3>
-        <div className="mb-4 grid grid-cols-2 md:grid-cols-3 gap-2">
+        <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {empleados.map((empleado) => (
-            <label key={empleado.id} className="flex items-center space-x-2">
+            <label key={empleado.id} className="flex items-center space-x-3 p-2 bg-gray-50 rounded-md shadow hover:bg-gray-100">
               <input
                 type="checkbox"
                 value={empleado.id}
@@ -245,7 +271,16 @@ const Servicios = () => {
                 onChange={handleEmpleadoSelect}
                 className="h-4 w-4 text-blue-600 border-gray-300 rounded"
               />
-              <span>{empleado.nombre} - {empleado.cargo}</span>
+              <div className="flex items-center space-x-2">
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-300">
+                  {empleado.foto_perfil ? (
+                    <img src={empleado.foto_perfil} alt={`${empleado.nombre}`} className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="text-gray-500">👤</span>
+                  )}
+                </div>
+                <span className="text-gray-800 font-medium">{empleado.nombre}</span>
+              </div>
             </label>
           ))}
         </div>
