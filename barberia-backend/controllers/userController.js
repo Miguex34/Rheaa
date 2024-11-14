@@ -5,6 +5,9 @@ const DuenoNegocio = require('../models/DuenoNegocio');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const EmpleadoNegocio = require('../models/EmpleadoNegocio');
+const path = require('path');
+
+
 // Función para registrar un usuario y crear su negocio
 const register = async (req, res) => {
   const {
@@ -143,7 +146,9 @@ const getLoggedUser = async (req, res) => {
       nombre: usuario.nombre,
       correo: usuario.correo,
       telefono: usuario.telefono,
+      foto_perfil: usuario.foto_perfil,
       negocio: usuario.negocio || {},
+      
     });
   } catch (error) {
     console.error('Error al obtener el usuario logeado:', error);
@@ -188,10 +193,44 @@ const updateUser = async (req, res) => {
     return res.status(500).json({ error: 'Error al actualizar el usuario', detalle: error.message });
   }
 };
+const uploadProfileImage = async (req, res) => {
+  try {
+    console.log("ID de usuario en req.user:", req.user);
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No se ha subido ningún archivo' });
+    }
+
+    const profileImageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    const userId = req.user.id;
+
+    // Busca al usuario por su ID
+    const user = await Usuario.findByPk(userId);
+
+    // Verifica si el usuario existe
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    // Actualiza el campo foto_perfil y guarda los cambios
+    user.foto_perfil = profileImageUrl;
+    await user.save();
+
+    res.json({
+      message: 'Foto de perfil actualizada correctamente',
+      profileImage: user.foto_perfil,
+    });
+  } catch (error) {
+    console.error('Error al subir la imagen:', error);
+    res.status(500).json({ message: 'Error al subir la imagen' });
+  }
+};
+
 module.exports = {
   register,
   login,
   getUserById,
   getLoggedUser,
   updateUser,
+  uploadProfileImage,
 };

@@ -3,6 +3,7 @@ const cors = require('cors');
 const sequelize = require('./config/database'); // Configuración de la base de 
 const bodyParser = require('body-parser');
 require('./models/associations'); // Asociaciones entre modelos
+const path = require('path');
 
 // Importa tus modelos explícitamente
 const Usuario = require('./models/Usuario');
@@ -47,7 +48,7 @@ app.use('/api/servicios', servicioRoutes);
 app.use('/api/pagos', pagoRoutes);
 app.use('/api/disponibilidadEmpleado', disponibilidadEmpleadoRoutes);
 app.use('/api/horarios', horarioRoutes);
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/eventos', eventoRoutes);
 app.use('/api/reservas', authMiddleware, reservaRoutes);
 app.use(proxyRoutes);

@@ -51,7 +51,7 @@ const Usuario = sequelize.define('Usuario', {
     type: DataTypes.STRING(255),
   },
   foto_perfil: {
-    type: DataTypes.BLOB,
+    type: DataTypes.STRING,
   },
 }, {
   timestamps: false,
