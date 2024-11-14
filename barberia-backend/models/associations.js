@@ -58,9 +58,14 @@ Pago.belongsTo(Reserva, { foreignKey: 'id_reserva' });
 Usuario.hasMany(Reserva, { foreignKey: 'id_cliente', as: 'reservas' });
 Reserva.belongsTo(Usuario, { foreignKey: 'id_cliente' });
 
-// Asociación: Un Usuario tiene muchos Eventos
+
+// Asociación Un Negocio tiene muchos Eventos (calendario compartido)
 Negocio.hasMany(Evento, { foreignKey: 'id_negocio', as: 'eventos' });
 Evento.belongsTo(Negocio, { foreignKey: 'id_negocio', as: 'negocio' });
+
+// Asociación Un Usuario crea múltiples Eventos
+Usuario.hasMany(Evento, { foreignKey: 'id_usuario', as: 'eventosCreados' });
+Evento.belongsTo(Usuario, { foreignKey: 'id_usuario', as: 'creador' });
 
 // Asociación: Relación entre Servicio y Empleado a través de EmpleadoServicio
 // associations.js

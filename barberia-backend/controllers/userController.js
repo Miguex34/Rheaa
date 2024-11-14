@@ -146,6 +146,7 @@ const getLoggedUser = async (req, res) => {
       nombre: usuario.nombre,
       correo: usuario.correo,
       telefono: usuario.telefono,
+      cargo: usuario.cargo,
       foto_perfil: usuario.foto_perfil,
       negocio: usuario.negocio || {},
       

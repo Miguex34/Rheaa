@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react'; 
+import React, { useState, useEffect } from 'react';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { format, parse, startOfWeek, getDay, isValid as dateFnsIsValid, parseISO } from 'date-fns';
+import { format, parse, startOfWeek, getDay, parseISO } from 'date-fns';
 import es from 'date-fns/locale/es';
 import Modal from 'react-modal';
 import axios from 'axios';
+import moment from 'moment';
 
 const locales = {
   es: es,
@@ -20,22 +21,28 @@ const localizer = dateFnsLocalizer({
 
 Modal.setAppElement('#root');
 
-const colorPalette = ["#FF5733", "#33FF57", "#3357FF", "#F3FF33", "#FF33F3", "#33FFF3"]; // Colores predefinidos para categorías
+const colorPalette = ["#FF5733", "#33FF57", "#3357FF", "#F3FF33", "#FF33F3", "#33FFF3"];
+
+const predefinedCategories = [
+  "Cumpleaños",
+  "Entrega de Suministros",
+  "Reunión de Equipo",
+  "Visita de Clientes",
+  "Mantenimiento",
+];
 
 const Calendario = () => {
-  const [user, setUser] = useState({ nombre: '', correo: '', id_negocio: null });
+  const [user, setUser] = useState({ nombre: '', correo: '', id_negocio: null, cargo: '' });
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const [events, setEvents] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [newEvent, setNewEvent] = useState({ titulo: '', inicio: new Date(), fin: new Date(), descripcion: '', categoria: '' });
   const [formError, setFormError] = useState('');
-  const [categories, setCategories] = useState([]);
-  const [newCategory, setNewCategory] = useState(''); // Estado para la nueva categoría
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) {
-      return;
-    }
+    if (!token) return;
 
     axios
       .get('http://localhost:5000/api/users/me', {
@@ -44,22 +51,23 @@ const Calendario = () => {
       .then((response) => {
         setUser(response.data);
         const negocio = response.data.negocio;
-        if (negocio && negocio.id) {
-          cargarEventos(negocio.id);
-        }
+        if (negocio && negocio.id) cargarEventos(negocio.id, token);
       })
-      .catch((error) => {
+      .catch(() => {
         localStorage.removeItem('token');
       });
   }, []);
 
-  const cargarEventos = async (id_negocio) => {
+  const cargarEventos = async (id_negocio, token) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/eventos/negocio/${id_negocio}`);
+      const response = await axios.get(`http://localhost:5000/api/eventos/negocio/${id_negocio}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const eventosConFechaCorrecta = response.data.map(evento => ({
         ...evento,
-        start: parseISO(evento.fecha_inicio),
-        end: parseISO(evento.fecha_fin),
+        title: evento.titulo,
+        inicio: parseISO(evento.inicio),
+        fin: parseISO(evento.fin),
       }));
       setEvents(eventosConFechaCorrecta);
     } catch (error) {
@@ -68,7 +76,7 @@ const Calendario = () => {
   };
 
   const getCategoryColor = (categoryName) => {
-    const index = categories.findIndex((cat) => cat.nombre === categoryName);
+    const index = predefinedCategories.indexOf(categoryName);
     return colorPalette[index % colorPalette.length];
   };
 
@@ -93,14 +101,6 @@ const Calendario = () => {
       setFormError('El título es obligatorio.');
       return false;
     }
-    if (!dateFnsIsValid(newEvent.inicio) || !dateFnsIsValid(newEvent.fin)) {
-      setFormError('Las fechas de inicio y fin deben ser válidas.');
-      return false;
-    }
-    if (newEvent.inicio >= newEvent.fin) {
-      setFormError('La fecha de inicio debe ser anterior a la fecha de finalización.');
-      return false;
-    }
     if (!newEvent.categoria.trim()) {
       setFormError('La categoría es obligatoria.');
       return false;
@@ -113,9 +113,7 @@ const Calendario = () => {
   };
 
   const handleAddEvent = async () => {
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     try {
       const token = localStorage.getItem('token');
@@ -135,24 +133,42 @@ const Calendario = () => {
       const response = await axios.post('http://localhost:5000/api/eventos', formattedEvent, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       setEvents([...events, {
         ...response.data,
         inicio: new Date(response.data.inicio),
         fin: new Date(response.data.fin),
       }]);
       closeModal();
+      window.location.reload();
     } catch (error) {
       console.error('Error al añadir el evento:', error);
     }
   };
+   // Maneja el click en el evento
+   const handleSelectEvent = (event) => {
+    setSelectedEvent(event);
+    setShowModal(true);
+  };
 
-  const handleAddCategory = () => {
-    if (newCategory.trim()) {
-      setCategories([...categories, { nombre: newCategory }]);
-      setNewCategory('');
+  const handleDeleteEvent = async (eventId) => {
+    const token = localStorage.getItem('token');
+    try {
+      await axios.delete(`http://localhost:5000/api/eventos/${eventId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      alert("Evento eliminado con éxito");
+      cargarEventos(user.negocio.id, token); // Recargar los eventos tras eliminación
+    } catch (error) {
+      console.error("Error al eliminar el evento:", error);
     }
   };
+
+  const puedeEliminarEvento = selectedEvent && user && (
+    user.cargo === "Dueño" || user.id === selectedEvent.id_usuario_creador
+  );
+
+  
 
   return (
     <div className="container mx-auto p-6">
@@ -169,6 +185,7 @@ const Calendario = () => {
           style={{ height: 500 }}
           selectable
           onSelectSlot={(slotInfo) => openModal(slotInfo)}
+          onSelectEvent={handleSelectEvent}
           messages={{
             next: "Siguiente",
             previous: "Anterior",
@@ -191,37 +208,54 @@ const Calendario = () => {
           })}
         />
       </div>
+          {/* Modal para mostrar los detalles del evento */}
+      {showModal && selectedEvent && (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">{selectedEvent.titulo}</h2>
+          
+          <p className="text-gray-600 mb-2">
+            <span className="font-semibold">Inicio:</span> {new Date(selectedEvent.inicio).toLocaleString()}
+          </p>
+          
+          <p className="text-gray-600 mb-2">
+            <span className="font-semibold">Fin:</span> {new Date(selectedEvent.fin).toLocaleString()}
+          </p>
+          
+          <p className="text-gray-600 mb-2">
+            <span className="font-semibold">Descripción:</span> {selectedEvent.descripcion}
+          </p>
+          
+          <p className="text-gray-600 mb-2">
+            <span className="font-semibold">Categoría:</span> {selectedEvent.categoria}
+          </p>
+          
+          <p className="text-gray-600 mb-4">
+            <span className="font-semibold">Creado por:</span> {selectedEvent.nombre_usuario}
+          </p>
+          
+          <div className="flex justify-end space-x-4">
+            {puedeEliminarEvento && (
+              <button
+                onClick={() => handleDeleteEvent(selectedEvent.id)}
+                className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition duration-200"
+              >
+                Eliminar
+              </button>
+            )}
+            <button
+              onClick={() => setSelectedEvent(null)}
+              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-200"
+            >
+              Cerrar
+            </button>
+          </div>
 
-      {/* Sección para crear nueva categoría */}
-      <div className="bg-gray-100 rounded-lg shadow-md p-4 mt-4">
-        <h3 className="text-2xl font-semibold mb-4 text-gray-800">Crear Nueva Categoría</h3>
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={newCategory}
-            onChange={(e) => setNewCategory(e.target.value)}
-            placeholder="Nombre de la categoría"
-            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            onClick={handleAddCategory}
-            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200"
-          >
-            Añadir
-          </button>
-        </div>
-        <div className="mt-4">
-          <h4 className="text-lg font-semibold text-gray-700 mb-2">Categorías Existentes:</h4>
-          <ul className="list-disc pl-5 text-gray-600">
-            {categories.map((category, index) => (
-              <li key={index} style={{ color: getCategoryColor(category.nombre) }}>
-                {category.nombre}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
 
+          </div>
+        </div>
+      )}
+    
       {/* Modal para añadir un evento */}
       <Modal
         isOpen={modalOpen}
@@ -255,7 +289,7 @@ const Calendario = () => {
               <label className="block text-gray-700 font-semibold mb-2">Fecha de Inicio:</label>
               <input
                 type="datetime-local"
-                value={dateFnsIsValid(newEvent.inicio) ? format(newEvent.inicio, "yyyy-MM-dd'T'HH:mm") : ''}
+                value={format(newEvent.inicio, "yyyy-MM-dd'T'HH:mm")}
                 onChange={(e) => setNewEvent({ ...newEvent, inicio: new Date(e.target.value) })}
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -264,7 +298,7 @@ const Calendario = () => {
               <label className="block text-gray-700 font-semibold mb-2">Fecha de Finalización:</label>
               <input
                 type="datetime-local"
-                value={dateFnsIsValid(newEvent.fin) ? format(newEvent.fin, "yyyy-MM-dd'T'HH:mm") : ''}
+                value={format(newEvent.fin, "yyyy-MM-dd'T'HH:mm")}
                 onChange={(e) => setNewEvent({ ...newEvent, fin: new Date(e.target.value) })}
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -277,10 +311,8 @@ const Calendario = () => {
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Seleccione una categoría</option>
-                {categories.map((category) => (
-                  <option key={category.nombre} value={category.nombre}>
-                    {category.nombre}
-                  </option>
+                {predefinedCategories.map((category, index) => (
+                  <option key={index} value={category}>{category}</option>
                 ))}
               </select>
             </div>
