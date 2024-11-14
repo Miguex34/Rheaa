@@ -73,15 +73,6 @@ const Sidebar = ({ tieneNegocio }) => {
             </li>
             <li>
               <Link
-                to="/notificaciones"
-                className={`flex items-center space-x-3 p-2 px-4 rounded transition-colors duration-200 ${isActive('/notificaciones') ? 'bg-purple-500' : 'hover:bg-gray-700'}`}
-              >
-                <FcSms />
-                {isMenuOpen && <span>Notificaciones</span>}
-              </Link>
-            </li>
-            <li>
-              <Link
                 to="/calendario"
                 className={`flex items-center space-x-3 p-2 px-4 rounded transition-colors duration-200 ${isActive('/calendario') ? 'bg-purple-500' : 'hover:bg-gray-700'}`}
               >
@@ -97,16 +88,7 @@ const Sidebar = ({ tieneNegocio }) => {
                 <FcAutomatic />
                 {isMenuOpen && <span>Configuración</span>}
               </Link>
-            </li>
-            <li>
-              <Link
-                to="/soporte"
-                className={`flex items-center space-x-3 p-2 px-4 rounded transition-colors duration-200 ${isActive('/soporte') ? 'bg-purple-500' : 'hover:bg-gray-700'}`}
-              >
-                <FcSupport/>
-                {isMenuOpen && <span>Soporte</span>}
-              </Link>
-            </li>
+            </li>        
           </>
         )}
       </ul>

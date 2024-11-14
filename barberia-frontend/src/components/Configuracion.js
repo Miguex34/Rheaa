@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
+import { FcSms, FcSupport } from 'react-icons/fc';
 
 const Configuracion = () => {
   const [formData, setFormData] = useState({
@@ -161,6 +163,23 @@ const Configuracion = () => {
           <p className="text-sm text-gray-500">Edita tu perfil</p>
         </div>
       </div>
+      <Link to="/notificaciones" className="cursor-pointer flex items-center space-x-4 p-4 bg-gray-100 rounded-md mb-6">
+        <div className="h-12 w-12 flex items-center justify-center">
+          <FcSms className="text-4xl" /> {/* Icono de Notificaciones */}
+        </div>
+        <div>
+          <h3 className="text-lg font-medium text-gray-800">Notificaciones</h3>
+        </div>
+      </Link>
+
+      <Link to="/soporte" className="cursor-pointer flex items-center space-x-4 p-4 bg-gray-100 rounded-md mb-6">
+        <div className="h-12 w-12 flex items-center justify-center">
+          <FcSupport className="text-4xl" /> {/* Icono de Soporte */}
+        </div>
+        <div>
+          <h3 className="text-lg font-medium text-gray-800">Soporte</h3>
+        </div>
+      </Link>
 
       {showEditPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
