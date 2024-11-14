@@ -1,20 +1,20 @@
 // src/components/VistaCliente.js
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate  } from 'react-router-dom';
 import axios from 'axios';
 import fondo1 from '../assets/images/fondo1.png';
 const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
 const VistaCliente = () => {
   const { nombre } = useParams(); // Obtener el nombre del negocio desde la URL
+  const navigate = useNavigate(); // Hook para la navegación
   const [negocio, setNegocio] = useState(null);
   const [servicios, setServicios] = useState([]);
   const [horarios, setHorarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedServicio, setSelectedServicio] = useState(null);
   const [filtroCategoria, setFiltroCategoria] = useState('');
+
   useEffect(() => {
     // Función para obtener información del negocio, servicios y horarios
     const fetchData = async () => {
@@ -41,17 +41,11 @@ const VistaCliente = () => {
     fetchData();
   }, [nombre]);
   
-
-
-  const handleOpenModal = (servicio) => {
-    setSelectedServicio(servicio);
-    setModalOpen(true);
+  const seleccionarServicio = (servicio) => {
+    sessionStorage.setItem('servicioSeleccionado', servicio.id); // Guardar el ID del servicio en sessionStorage
+    navigate('/pregunta-preferencia'); // Navegar a PreguntaPreferencia.js
   };
 
-  const handleCloseModal = () => {
-    setModalOpen(false);
-    setSelectedServicio(null);
-  };
   const serviciosFiltrados = filtroCategoria
     ? servicios.filter(servicio => servicio.categoria === filtroCategoria)
     : servicios;
@@ -111,10 +105,10 @@ const VistaCliente = () => {
                   <p className="mb-2"><strong>Precio:</strong> ${servicio.precio}</p>
                   <p className="mb-4"><strong>Categoría:</strong> {servicio.categoria}</p>
                   <button
-                    onClick={() => handleOpenModal(servicio)}
+                    onClick={() => seleccionarServicio(servicio)}
                     className="bg-[#855bff] text-white px-4 py-2 rounded-md hover:bg-purple-700 transition duration-300"
                   >
-                    Ver descripción
+                    Seleccionar Servicio
                   </button>
                 </div>
               ))}
@@ -157,21 +151,6 @@ const VistaCliente = () => {
         </div>
       </div>
 
-      {/* Modal para la descripción del servicio */}
-      {modalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-md shadow-lg max-w-md w-full">
-            <h4 className="text-2xl font-bold mb-4">{selectedServicio.nombre}</h4>
-            <p className="mb-4">{selectedServicio.descripcion}</p>
-            <button
-              onClick={handleCloseModal}
-              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300"
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

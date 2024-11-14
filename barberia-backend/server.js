@@ -58,6 +58,8 @@ app.use('/api/reservas', authMiddleware, reservaRoutes);
 
 // Registrar la ruta de reserva de horario
 app.use('/api/reserva-horario', reservaHorarioRoutes);
+// Registrar las rutas de reserva de horarios con el prefijo /api/reserva-horario
+app.use('/api/reserva-horario', reservaHorarioRoutes);
 
 // Servir archivos estáticos desde la carpeta 'uploads'
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

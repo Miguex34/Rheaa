@@ -3,6 +3,8 @@ const HorarioNegocio = require('../models/HorarioNegocio');
 const DisponibilidadEmpleado = require('../models/DisponibilidadEmpleado');
 const Reserva = require('../models/Reserva');
 const Servicio = require('../models/Servicio');
+const EmpleadoNegocio = require('../models/EmpleadoNegocio');
+const EmpleadoServicio = require('../models/EmpleadoServicio');
 const moment = require('moment');
 require('moment/locale/es'); // Cargar configuración en español para moment
 moment.locale('es'); // Configurar moment para usar el español
@@ -105,19 +107,37 @@ exports.obtenerDisponibilidadEmpleado = async (req, res) => {
     const { negocioId, servicioId, empleadoId } = req.params;
 
     try {
+        // Validación 1: Verificar si el servicio pertenece al negocio
+        const servicio = await Servicio.findOne({
+            where: { id: servicioId, id_negocio: negocioId },
+        });
+        if (!servicio) {
+            return res.status(400).json({ message: 'El servicio no corresponde a este negocio' });
+        }
+
+        // Validación 2: Verificar si el empleado está asignado al negocio
+        const empleadoNegocio = await EmpleadoNegocio.findOne({
+            where: { id_usuario: empleadoId, id_negocio: negocioId },
+        });
+        if (!empleadoNegocio) {
+            return res.status(400).json({ message: 'El empleado no pertenece a este negocio' });
+        }
+
+        // Validación 3: Verificar si el empleado realiza el servicio específico
+        const empleadoServicio = await EmpleadoServicio.findOne({
+            where: { id_empleado: empleadoId, id_servicio: servicioId },
+        });
+        if (!empleadoServicio) {
+            return res.status(400).json({ message: 'El empleado no realiza este servicio' });
+        }
+
         const diasDisponibles = [];
+        const duracionServicio = servicio.duracion;
 
         // Obtener el horario general del negocio
         const horariosNegocio = await HorarioNegocio.findAll({
             where: { id_negocio: negocioId, activo: true },
         });
-
-        // Obtener la duración del servicio
-        const servicio = await Servicio.findByPk(servicioId);
-        if (!servicio) {
-            return res.status(404).json({ message: 'Servicio no encontrado' });
-        }
-        const duracionServicio = servicio.duracion;
 
         // Obtener la disponibilidad específica del empleado
         const disponibilidadEmpleado = await DisponibilidadEmpleado.findAll({
@@ -184,7 +204,6 @@ exports.obtenerDisponibilidadEmpleado = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
-
 
 // Función para obtener el calendario de disponibilidad de un negocio específico para las próximas 4 semanas (patrón semanal)
 exports.obtenerCalendarioDisponibilidad = async (req, res) => {
@@ -337,6 +356,65 @@ exports.obtenerBloquesDisponibles = async (req, res) => {
 
         res.json(bloquesDisponibles);
     } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Función para reservar un bloque de horario disponible
+exports.reservarBloqueHorario = async (req, res) => {
+    const { negocioId, servicioId, empleadoId, fecha, hora_inicio, hora_fin, clienteId, comentario_cliente } = req.body;
+
+    try {
+        // Verificación de solapamiento
+        const reservaExistente = await Reserva.findOne({
+            where: {
+                id_negocio: negocioId,
+                id_servicio: servicioId,
+                id_empleado: empleadoId,
+                fecha, // Comparación directa de fecha ahora que es DATE
+                hora_inicio: { [Op.lt]: hora_fin },   // inicio de la reserva existente es antes del fin del nuevo bloque
+                hora_fin: { [Op.gt]: hora_inicio }    // fin de la reserva existente es después del inicio del nuevo bloque
+            }
+        });
+
+        if (reservaExistente) {
+            return res.status(400).json({ message: 'El bloque de horario ya ha sido reservado.' });
+        }
+
+        // Confirmación de que el servicio y el empleado están activos
+        const servicio = await Servicio.findByPk(servicioId);
+        if (!servicio || !servicio.disponible) {
+            return res.status(400).json({ message: 'El servicio no está disponible.' });
+        }
+
+        const empleadoNegocio = await EmpleadoNegocio.findOne({
+            where: { id_usuario: empleadoId, id_negocio: negocioId }
+        });
+        if (!empleadoNegocio) {
+            return res.status(400).json({ message: 'El empleado no pertenece a este negocio.' });
+        }
+
+        // Crear la reserva si el bloque está libre
+        const nuevaReserva = await Reserva.create({
+            id_usuario: clienteId,
+            id_servicio: servicioId,
+            id_cliente: clienteId,
+            id_negocio: negocioId,
+            id_empleado: empleadoId,
+            fecha,
+            hora_inicio,
+            hora_fin,
+            estado: 'reservado',
+            comentario_cliente,
+            fecha_creacion: new Date()
+        });
+
+        res.status(201).json({
+            message: 'Reserva confirmada.',
+            reserva: nuevaReserva
+        });
+    } catch (error) {
+        console.error("Error al reservar bloque de horario:", error);
         res.status(500).json({ error: error.message });
     }
 };
