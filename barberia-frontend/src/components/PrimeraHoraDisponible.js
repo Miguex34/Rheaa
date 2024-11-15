@@ -1,15 +1,19 @@
+// src/components/PrimeraHoraDisponible.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import moment from 'moment';
+import { useNavigate } from 'react-router-dom';
 
 const PrimeraHoraDisponible = ({ negocioId, servicioId }) => {
     const [diasDisponibles, setDiasDisponibles] = useState([]);
     const [bloquesPorProfesional, setBloquesPorProfesional] = useState({});
     const [diaSeleccionado, setDiaSeleccionado] = useState(null);
+    const [bloqueSeleccionado, setBloqueSeleccionado] = useState(null); // "Nuevo" - Estado para el bloque seleccionado
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const navigate = useNavigate(); // "Nuevo" - Inicializar navegación
 
     useEffect(() => {
         if (!negocioId || !servicioId) {
@@ -34,6 +38,7 @@ const PrimeraHoraDisponible = ({ negocioId, servicioId }) => {
     const handleDiaSeleccion = (date) => {
         const dia = moment(date).format('YYYY-MM-DD');
         setDiaSeleccionado(dia);
+        setBloqueSeleccionado(null); // "Nuevo" - Resetea el bloque seleccionado al cambiar el día
 
         axios.get(`http://localhost:5000/api/reserva-horario/bloques/${negocioId}/${servicioId}/${dia}`)
             .then(response => {
@@ -55,10 +60,33 @@ const PrimeraHoraDisponible = ({ negocioId, servicioId }) => {
             });
     };
 
+    const handleBloqueSeleccion = (bloque) => {
+        setBloqueSeleccionado(bloque); // "Nuevo" - Almacena el bloque de horario seleccionado
+    };
+
+    const handleSiguiente = () => {
+        const seleccion = {
+            negocioId,
+            servicioId,
+            fecha: diaSeleccionado,
+            bloque: bloqueSeleccionado,
+        };
+        navigate('/resumen', { state: seleccion }); // "Nuevo" - Redirigir a la página de resumen
+    };
+
     const isDayDisabled = (date) => {
         const formattedDate = moment(date).format('YYYY-MM-DD');
         const dia = diasDisponibles.find(d => d.fecha === formattedDate);
         return !(dia && dia.disponible);
+    };
+
+    // "Nuevo" - Función para dividir los bloques en filas de 5
+    const dividirEnFilas = (arr, tamanio) => {
+        const filas = [];
+        for (let i = 0; i < arr.length; i += tamanio) {
+            filas.push(arr.slice(i, i + tamanio));
+        }
+        return filas;
     };
 
     return (
@@ -86,21 +114,50 @@ const PrimeraHoraDisponible = ({ negocioId, servicioId }) => {
                         Object.entries(bloquesPorProfesional).map(([empleado, bloques], index) => (
                             <div key={empleado}>
                                 <h4>Profesional: {empleado}</h4>
-                                <ul>
-                                    {bloques.length > 0 ? (
-                                        bloques.map((bloque, idx) => (
-                                            <li key={`${empleado}-${idx}`}>
+                                {/* "Nuevo" - Mostrar bloques en filas de 5 */}
+                                {dividirEnFilas(bloques, 5).map((fila, filaIndex) => (
+                                    <div key={filaIndex} style={{ display: 'flex', justifyContent: 'center', gap: '5px', marginBottom: '10px' }}>
+                                        {fila.map((bloque, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => handleBloqueSeleccion({ ...bloque, fecha: diaSeleccionado })}
+                                                style={{
+                                                    cursor: 'pointer',
+                                                    backgroundColor: bloqueSeleccionado?.hora_inicio === bloque.hora_inicio ? '#4CAF50' : '#f9f9f9',
+                                                    color: bloqueSeleccionado?.hora_inicio === bloque.hora_inicio ? 'white' : 'black',
+                                                    padding: '10px 15px',
+                                                    border: '1px solid #ddd',
+                                                    borderRadius: '5px',
+                                                    minWidth: '110px',
+                                                    textAlign: 'center',
+                                                }}
+                                            >
                                                 {bloque.hora_inicio} - {bloque.hora_fin}
-                                            </li>
-                                        ))
-                                    ) : (
-                                        <li>No hay bloques de horario disponibles</li>
-                                    )}
-                                </ul>
+                                            </button>
+                                        ))}
+                                    </div>
+                                ))}
                             </div>
                         ))
                     ) : (
                         <p>No hay bloques de horario disponibles para este día.</p>
+                    )}
+                    {/* "Nuevo" - Botón de siguiente, visible solo cuando un bloque está seleccionado */}
+                    {bloqueSeleccionado && (
+                        <button
+                            onClick={handleSiguiente}
+                            style={{
+                                marginTop: '20px',
+                                padding: '10px 20px',
+                                backgroundColor: '#4CAF50',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '5px',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            Siguiente
+                        </button>
                     )}
                 </div>
             )}

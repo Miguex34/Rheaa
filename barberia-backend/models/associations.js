@@ -34,6 +34,10 @@ EmpleadoNegocio.belongsTo(Negocio, { foreignKey: 'id_negocio' });
 Usuario.belongsToMany(Negocio, { through: DuenoNegocio, as: 'negocios', foreignKey: 'id_usuario' });
 Negocio.belongsToMany(Usuario, { through: DuenoNegocio, as: 'duenos', foreignKey: 'id_negocio' });
 
+// Asociacion para traer tabla empleados en reserva.
+Usuario.hasMany(EmpleadoNegocio, { foreignKey: 'id_usuario' });
+EmpleadoNegocio.belongsTo(Usuario, { foreignKey: 'id_usuario' });
+
 // Asociación: Un Servicio puede tener muchas Reservas
 Servicio.hasMany(Reserva, { foreignKey: 'id_servicio', as: 'reservas' });
 Reserva.belongsTo(Servicio, { foreignKey: 'id_servicio' });
