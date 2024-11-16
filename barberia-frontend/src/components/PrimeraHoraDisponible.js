@@ -1,10 +1,10 @@
-// src/components/PrimeraHoraDisponible.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
+import '../styles.css'; // Archivo CSS personalizado
 
 const PrimeraHoraDisponible = ({ negocioId, servicioId }) => {
     const [diasDisponibles, setDiasDisponibles] = useState([]);
@@ -90,40 +90,66 @@ const PrimeraHoraDisponible = ({ negocioId, servicioId }) => {
     };
 
     return (
-        <div style={{ marginTop: '20px' }}>
-            <h2>Primera Hora Disponible</h2>
+        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+            {/* Título principal */}
+            <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#151515', marginBottom: '5px' }}>
+                Primera Hora Disponible
+            </h3>
+            {/* Subtítulo */}
+            <p style={{ fontSize: '18px', color: '#555', marginBottom: '30px' }}>
+                Seleccione un día:
+            </p>
 
+            {/* Calendario centrado */}
             {loading ? (
                 <p>Cargando disponibilidad...</p>
             ) : error ? (
                 <p style={{ color: 'red' }}>{error}</p>
             ) : (
-                <div>
-                    <h3>Seleccione un día:</h3>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
                     <Calendar
                         onChange={handleDiaSeleccion}
                         tileDisabled={({ date }) => isDayDisabled(date)}
+                        style={{
+                            width: '100%', // Asegura que el calendario ocupe toda la pantalla disponible
+                        }}
                     />
                 </div>
             )}
 
+            {/* Horarios por día */}
             {diaSeleccionado && (
                 <div style={{ marginTop: '20px' }}>
-                    <h3>Horarios para el día {diaSeleccionado}</h3>
+                    <h3 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '15px' }}>
+                        Horarios para el día{' '}
+                        <span style={{ color: '#5666dc' }}>
+                            {moment(diaSeleccionado).format('YYYY-MM-DD')}
+                        </span>
+                    </h3>
                     {Object.keys(bloquesPorProfesional).length > 0 ? (
                         Object.entries(bloquesPorProfesional).map(([empleado, bloques], index) => (
                             <div key={empleado}>
-                                <h4>Profesional: {empleado}</h4>
-                                {/* "Nuevo" - Mostrar bloques en filas de 5 */}
+                                <h4 style={{ fontSize: '18px', marginBottom: '10px' }}>
+                                    Profesional: {empleado}
+                                </h4>
+                                {/* Bloques mostrados en filas de 5 */}
                                 {dividirEnFilas(bloques, 5).map((fila, filaIndex) => (
-                                    <div key={filaIndex} style={{ display: 'flex', justifyContent: 'center', gap: '5px', marginBottom: '10px' }}>
+                                    <div
+                                        key={filaIndex}
+                                        style={{
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            gap: '5px',
+                                            marginBottom: '10px',
+                                        }}
+                                    >
                                         {fila.map((bloque, idx) => (
                                             <button
                                                 key={idx}
                                                 onClick={() => handleBloqueSeleccion({ ...bloque, fecha: diaSeleccionado })}
                                                 style={{
                                                     cursor: 'pointer',
-                                                    backgroundColor: bloqueSeleccionado?.hora_inicio === bloque.hora_inicio ? '#4CAF50' : '#f9f9f9',
+                                                    backgroundColor: bloqueSeleccionado?.hora_inicio === bloque.hora_inicio ? '#333' : '#f9f9f9',
                                                     color: bloqueSeleccionado?.hora_inicio === bloque.hora_inicio ? 'white' : 'black',
                                                     padding: '10px 15px',
                                                     border: '1px solid #ddd',
@@ -142,14 +168,15 @@ const PrimeraHoraDisponible = ({ negocioId, servicioId }) => {
                     ) : (
                         <p>No hay bloques de horario disponibles para este día.</p>
                     )}
-                    {/* "Nuevo" - Botón de siguiente, visible solo cuando un bloque está seleccionado */}
+
+                    {/* Botón de siguiente */}
                     {bloqueSeleccionado && (
                         <button
                             onClick={handleSiguiente}
                             style={{
                                 marginTop: '20px',
                                 padding: '10px 20px',
-                                backgroundColor: '#4CAF50',
+                                backgroundColor: '#855bff',
                                 color: 'white',
                                 border: 'none',
                                 borderRadius: '5px',

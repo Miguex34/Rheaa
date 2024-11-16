@@ -47,6 +47,7 @@ const VistaCliente = () => {
   
   const seleccionarServicio = (servicio) => {
     sessionStorage.setItem('servicioSeleccionado', servicio.id); // Guardar el ID del servicio en sessionStorage
+    sessionStorage.setItem('servicioSeleccionadoNombre', servicio.nombre);
     navigate('/pregunta-preferencia'); // Navegar a PreguntaPreferencia.js
   };
 

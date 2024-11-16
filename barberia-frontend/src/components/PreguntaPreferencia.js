@@ -6,6 +6,7 @@ const PreguntaPreferencia = () => {
     // Leer `negocioId` y `servicioId` desde `sessionStorage`
     const negocioId = sessionStorage.getItem('negocioSeleccionado');
     const servicioId = sessionStorage.getItem('servicioSeleccionado');
+    const servicioNombre = sessionStorage.getItem('servicioSeleccionadoNombre'); // Nuevo
 
     const [preferencia, setPreferencia] = useState(null);
 
@@ -15,49 +16,68 @@ const PreguntaPreferencia = () => {
 
     return (
         <div style={{ padding: '20px', textAlign: 'center' }}>
-            <h1>Pregunta de Preferencia</h1>
-            <p>Servicio seleccionado con ID: {servicioId}</p>
-    
-            <div style={{ marginTop: '20px' }}>
+            {/* "Nuevo" - Título principal */}
+            <h1 style={{ fontSize: '36px', fontWeight: 'bold', color: '#855bff', marginBottom: '10px' }}>
+                Reserva tu Hora
+            </h1>
+
+            {/* Mostrar el nombre del servicio */}
+            <p style={{ fontSize: '16px', color: '#333', fontWeight: 'bold', marginBottom: '20px' }}>
+                Servicio seleccionado: <span style={{ color: '#855bff' }}>{servicioNombre}</span>
+            </p>
+
+            {/* "Nuevo" - Subtítulo */}
+            <p style={{ fontSize: '16px', color: '#555', marginBottom: '30px' }}>
+                A continuación, selecciona cómo prefieres elegir tu horario de reserva. <br></br>
+                Primera hora disponible sin importar el profesional o  Elegir una hora con un Profesional Específico.
+            </p>
+
+
+            
+
+            {/* Opciones de preferencia */}
+            <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '15px' }}>
                 {/* Botón para Primera Hora Disponible */}
                 <button
                     onClick={() => handlePreferenciaSeleccion('primera-hora')}
                     style={{
-                        margin: '10px',
-                        padding: '10px 20px',
-                        backgroundColor: '#4CAF50',
+                        padding: '12px 20px',
+                        backgroundColor: '#444444',
                         color: 'white',
-                        border: 'none',
+                        border: '2px solid #444444',
                         borderRadius: '5px',
+                        fontSize: '16px',
+                        fontWeight: 'bold',
                         cursor: 'pointer',
-                        transition: 'background-color 0.3s',
+                        transition: 'all 0.3s ease',
                     }}
-                    onMouseOver={(e) => (e.target.style.backgroundColor = '#45a049')}
-                    onMouseOut={(e) => (e.target.style.backgroundColor = '#4CAF50')}
+                    onMouseOver={(e) => (e.target.style.backgroundColor = '#333333')}
+                    onMouseOut={(e) => (e.target.style.backgroundColor = '#444444')}
                 >
                     Primera Hora Disponible
                 </button>
-    
+
                 {/* Botón para Seleccionar Disponibilidad de Profesional */}
                 <button
                     onClick={() => handlePreferenciaSeleccion('profesional-especifico')}
                     style={{
-                        margin: '10px',
-                        padding: '10px 20px',
-                        backgroundColor: '#008CBA',
-                        color: 'white',
+                        padding: '12px 20px',
+                        backgroundColor: '#855bff',
+                        color: '#fff',
                         border: 'none',
                         borderRadius: '5px',
+                        fontSize: '16px',
+                        fontWeight: 'bold',
                         cursor: 'pointer',
-                        transition: 'background-color 0.3s',
+                        transition: 'all 0.3s ease',
                     }}
-                    onMouseOver={(e) => (e.target.style.backgroundColor = '#007bb5')}
-                    onMouseOut={(e) => (e.target.style.backgroundColor = '#008CBA')}
+                    onMouseOver={(e) => (e.target.style.backgroundColor = '#6c45e0')}
+                    onMouseOut={(e) => (e.target.style.backgroundColor = '#855bff')}
                 >
-                    Seleccionar Disponibilidad de Profesional
+                    Elegir Profesional Específico
                 </button>
             </div>
-    
+
             {/* Renderizado Condicional según la preferencia seleccionada */}
             {preferencia === 'primera-hora' && (
                 <PrimeraHoraDisponible negocioId={negocioId} servicioId={servicioId} />
