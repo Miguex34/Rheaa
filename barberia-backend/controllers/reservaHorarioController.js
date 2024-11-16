@@ -1,4 +1,5 @@
 // controllers/reservaHorarioController.js
+const Negocio = require('../models/Negocio'); // Importa el modelo del negocio
 const HorarioNegocio = require('../models/HorarioNegocio');
 const DisponibilidadEmpleado = require('../models/DisponibilidadEmpleado');
 const Reserva = require('../models/Reserva');
@@ -19,41 +20,53 @@ exports.obtenerDisponibilidadGeneral = async (req, res) => {
     try {
         const diasDisponibles = [];
 
-        // Obtener el horario general del negocio
-        const horariosNegocio = await HorarioNegocio.findAll({
-            where: { id_negocio: negocioId, activo: true },
-        });
+        // Obtener información del negocio
+        const negocio = await Negocio.findByPk(negocioId, { attributes: ['id', 'nombre'] });
+        if (!negocio) {
+            return res.status(404).json({ message: 'Negocio no encontrado' });
+        }
 
-        // Obtener la duración del servicio
-        const servicio = await Servicio.findByPk(servicioId);
+        // Obtener información del servicio
+        const servicio = await Servicio.findByPk(servicioId, { attributes: ['id', 'nombre', 'duracion'] });
         if (!servicio) {
             return res.status(404).json({ message: 'Servicio no encontrado' });
         }
         const duracionServicio = servicio.duracion;
 
+        // Obtener el horario general del negocio
+        const horariosNegocio = await HorarioNegocio.findAll({
+            where: { id_negocio: negocioId, activo: true },
+        });
+
         // Iterar sobre las próximas 4 semanas (28 días)
         for (let i = 0; i < 28; i++) {
             const fecha = moment().add(i, 'days');
-            const diaSemana = fecha.format('dddd');
+            const diaSemana = fecha.format('dddd').toLowerCase();
 
             // Verificar si el negocio está abierto en este día de la semana
-            const horarioNegocio = horariosNegocio.find(horario => horario.dia_semana.toLowerCase() === diaSemana.toLowerCase());
+            const horarioNegocio = horariosNegocio.find(horario => horario.dia_semana.toLowerCase() === diaSemana);
             if (!horarioNegocio) {
                 diasDisponibles.push({ fecha: fecha.format('YYYY-MM-DD'), disponible: false });
                 continue;
             }
 
-            // Verificar disponibilidad de empleados para este día
+            // Obtener empleados disponibles para este día con sus nombres
             const empleadosDisponibles = await DisponibilidadEmpleado.findAll({
                 where: {
                     id_negocio: negocioId,
                     dia_semana: diaSemana,
                     disponible: true
                 },
+                include: [
+                    {
+                        model: Usuario, // Relación con el modelo Usuario
+                        attributes: ['id', 'nombre'] // Traemos solo el ID y el nombre del empleado
+                    }
+                ]
             });
 
-            // Construir bloques de horario según la disponibilidad de cada empleado
             const bloquesPorEmpleado = [];
+
             for (const empleado of empleadosDisponibles) {
                 const bloquesEmpleado = [];
 
@@ -68,9 +81,9 @@ exports.obtenerDisponibilidadGeneral = async (req, res) => {
                         where: {
                             id_negocio: negocioId,
                             id_empleado: empleado.id_usuario,
-                            fecha: {
-                                [Op.between]: [horaInicio.toDate(), horaFinBloque.toDate()]
-                            }
+                            fecha: fecha.format('YYYY-MM-DD'),
+                            hora_inicio: horaInicio.format('HH:mm:ss'),
+                            hora_fin: horaFinBloque.format('HH:mm:ss')
                         }
                     });
 
@@ -80,16 +93,23 @@ exports.obtenerDisponibilidadGeneral = async (req, res) => {
                             hora_fin: horaFinBloque.format('HH:mm'),
                         });
                     }
+
                     horaInicio = horaFinBloque;
                 }
+
+                // Solo incluimos empleados que tienen bloques disponibles
                 if (bloquesEmpleado.length > 0) {
                     bloquesPorEmpleado.push({
-                        empleado: empleado.id_usuario,
+                        empleado: {
+                            id: empleado.id_usuario,
+                            nombre: empleado.Usuario.nombre // Incluimos el nombre del empleado
+                        },
                         bloques: bloquesEmpleado,
                     });
                 }
             }
 
+            // Si no hay bloques disponibles para ningún empleado, marcamos el día como no disponible
             diasDisponibles.push({
                 fecha: fecha.format('YYYY-MM-DD'),
                 disponible: bloquesPorEmpleado.length > 0,
@@ -97,7 +117,12 @@ exports.obtenerDisponibilidadGeneral = async (req, res) => {
             });
         }
 
-        res.json(diasDisponibles);
+        // Respuesta final
+        res.json({
+            negocio,
+            servicio,
+            diasDisponibles,
+        });
     } catch (error) {
         console.error("Error al obtener disponibilidad general:", error);
         res.status(500).json({ error: error.message });

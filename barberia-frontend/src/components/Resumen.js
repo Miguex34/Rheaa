@@ -1,78 +1,95 @@
 import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom'; // "Nuevo" - Para obtener el estado de navegación
+import { useNavigate } from 'react-router-dom';
 
 const Resumen = () => {
-    const location = useLocation(); // "Nuevo" - Obtener los datos pasados con `navigate`
     const navigate = useNavigate();
-    const seleccion = location.state || {}; // "Nuevo" - Obtener los datos seleccionados
 
-    // Obtener nombres desde sessionStorage
-    const negocioSeleccionado = JSON.parse(sessionStorage.getItem('negocioSeleccionado')) || {};
-    const servicioSeleccionado = JSON.parse(sessionStorage.getItem('servicioSeleccionado')) || {};
-    const empleadoSeleccionado = JSON.parse(sessionStorage.getItem('empleadoSeleccionado')) || {};
+    const negocioSeleccionado = JSON.parse(sessionStorage.getItem('negocioSeleccionado'));
+    const servicioSeleccionado = JSON.parse(sessionStorage.getItem('servicioSeleccionado'));
+    const empleadoSeleccionado = JSON.parse(sessionStorage.getItem('empleadoSeleccionado'));
+    const bloqueSeleccionado = JSON.parse(sessionStorage.getItem('bloqueSeleccionado'));
+    const fechaSeleccionada = sessionStorage.getItem('fechaSeleccionada');
+
+    const handleVolver = () => {
+        navigate('/pregunta-preferencia'); // Redirige a `Pregunta de Preferencia.`
+    };
+
+    if (!negocioSeleccionado || !servicioSeleccionado || !empleadoSeleccionado || !bloqueSeleccionado) {
+        return (
+            <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                <p>Error: No hay datos para mostrar. Por favor, vuelve a seleccionar tus preferencias.</p>
+                <button
+                    onClick={handleVolver}
+                    style={{
+                        marginTop: '20px',
+                        padding: '10px 20px',
+                        backgroundColor: '#855bff',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                    }}
+                >
+                    Volver
+                </button>
+            </div>
+        );
+    }
 
     return (
-        <div style={{ padding: '20px', textAlign: 'center' }}>
-            <h2 style={{ color: 'purple' }}>Resumen de la Reserva</h2>
+        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+            <h3>Resumen de la Reserva</h3>
             <p>Confirma si los datos ingresados están correctos:</p>
-
-            <div style={{ margin: '20px 0' }}></div>
-
-            <table style={{ margin: '0 auto', borderCollapse: 'collapse', width: '50%' }}>
+            <table style={{ margin: '0 auto', textAlign: 'left' }}>
                 <tbody>
                     <tr>
-                        <td style={{ border: '1px solid black', padding: '10px' }}>Negocio:</td>
-                        <td style={{ border: '1px solid black', padding: '10px' }}>{negocioSeleccionado.nombre || 'No definido'}</td>
+                        <td><b>Negocio:</b></td>
+                        <td>{negocioSeleccionado.nombre}</td>
                     </tr>
                     <tr>
-                        <td style={{ border: '1px solid black', padding: '10px' }}>Servicio:</td>
-                        <td style={{ border: '1px solid black', padding: '10px' }}>{servicioSeleccionado.nombre || 'No definido'}</td>
+                        <td><b>Servicio:</b></td>
+                        <td>{servicioSeleccionado.nombre}</td>
                     </tr>
                     <tr>
-                        <td style={{ border: '1px solid black', padding: '10px' }}>Profesional:</td>
-                        <td style={{ border: '1px solid black', padding: '10px' }}>{empleadoSeleccionado.nombre || 'No definido'}</td>
+                        <td><b>Profesional:</b></td>
+                        <td>{empleadoSeleccionado.empleadoNombre}</td>
                     </tr>
                     <tr>
-                        <td style={{ border: '1px solid black', padding: '10px' }}>Fecha:</td>
-                        <td style={{ border: '1px solid black', padding: '10px' }}>{seleccion.fecha || 'No definido'}</td>
+                        <td><b>Fecha:</b></td>
+                        <td>{fechaSeleccionada}</td>
                     </tr>
                     <tr>
-                        <td style={{ border: '1px solid black', padding: '10px' }}>Hora:</td>
-                        <td style={{ border: '1px solid black', padding: '10px' }}>
-                            {seleccion.bloque
-                                ? `${seleccion.bloque.hora_inicio} - ${seleccion.bloque.hora_fin}`
-                                : 'No definido'}
-                        </td>
+                        <td><b>Hora:</b></td>
+                        <td>{bloqueSeleccionado.hora_inicio} - {bloqueSeleccionado.hora_fin}</td>
                     </tr>
                 </tbody>
             </table>
-
-            <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '20px' }}>
+            <div style={{ marginTop: '20px' }}>
                 <button
-                    onClick={() => navigate(-1)}
+                    onClick={handleVolver}
                     style={{
+                        marginRight: '10px',
                         padding: '10px 20px',
-                        backgroundColor: 'white',
+                        backgroundColor: '#ccc',
                         color: 'black',
-                        border: '1px solid gray',
+                        border: 'none',
                         borderRadius: '5px',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
                     }}
                 >
                     Volver
                 </button>
                 <button
-                    onClick={() => console.log('Reserva confirmada')}
                     style={{
                         padding: '10px 20px',
-                        backgroundColor: 'purple',
+                        backgroundColor: '#855bff',
                         color: 'white',
                         border: 'none',
                         borderRadius: '5px',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
                     }}
                 >
-                    Confirmar Reserva
+                    Confirmar
                 </button>
             </div>
         </div>
