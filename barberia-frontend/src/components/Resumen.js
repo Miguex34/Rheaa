@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Resumen = () => {
     const navigate = useNavigate();
@@ -10,6 +11,37 @@ const Resumen = () => {
     const empleadoSeleccionado = JSON.parse(sessionStorage.getItem('empleadoSeleccionado'));
     const bloqueSeleccionado = JSON.parse(sessionStorage.getItem('bloqueSeleccionado'));
     const fechaSeleccionada = sessionStorage.getItem('fechaSeleccionada');
+
+    // Función para confirmar la reserva
+    const handleConfirmarReserva = async () => {
+        if (!negocioSeleccionado || !servicioSeleccionado || !empleadoSeleccionado || !bloqueSeleccionado || !fechaSeleccionada) {
+            alert('Faltan datos para confirmar la reserva.');
+            return;
+        }
+
+        const reservaData = {
+            negocioId: negocioSeleccionado.id,
+            servicioId: servicioSeleccionado.id,
+            empleadoId: empleadoSeleccionado.empleadoId,
+            fecha: fechaSeleccionada,
+            hora_inicio: bloqueSeleccionado.hora_inicio,
+            hora_fin: bloqueSeleccionado.hora_fin,
+            clienteId: 1, // Cliente predeterminado para pruebas
+            comentario_cliente: 'Reserva realizada desde la app.',
+        };
+
+        try {
+            const response = await axios.post('http://localhost:5000/api/reserva-horario/reservar', reservaData);
+            console.log('Reserva confirmada:', response.data);
+
+            alert('Reserva confirmada con éxito.');
+            sessionStorage.clear(); // Opcional: limpiar el sessionStorage
+            navigate('/exito'); // Redirige a una página de éxito
+        } catch (error) {
+            console.error('Error al confirmar la reserva:', error);
+            alert('Hubo un error al confirmar la reserva. Inténtalo nuevamente.');
+        }
+    };
 
     const handleVolver = () => {
         console.log('Volviendo a PrimeraHoraDisponible...');
@@ -90,6 +122,7 @@ const Resumen = () => {
                     Volver
                 </button>
                 <button
+                    onClick={handleConfirmarReserva}
                     style={{
                         padding: '10px 20px',
                         backgroundColor: '#855bff',
@@ -99,7 +132,7 @@ const Resumen = () => {
                         cursor: 'pointer',
                     }}
                 >
-                    Confirmar
+                    Confirmar Reserva
                 </button>
             </div>
         </div>
