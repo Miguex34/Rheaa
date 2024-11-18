@@ -464,6 +464,15 @@ exports.obtenerEmpleadosDisponibles = async (req, res) => {
                 {
                     model: Usuario,
                     attributes: ['id', 'nombre']
+                },
+                {
+                    model: DisponibilidadEmpleado, // Modelo de disponibilidad
+                    where: {
+                        id_negocio: negocioId,
+                        disponible: true // Validar que tenga días disponibles
+                    },
+                    required: true, // Solo incluye empleados con disponibilidad
+                    attributes: [] // No necesitamos traer los detalles
                 }
             ]
         });
@@ -473,6 +482,10 @@ exports.obtenerEmpleadosDisponibles = async (req, res) => {
             id: empleado.Usuario.id,
             nombre: empleado.Usuario.nombre
         }));
+
+        if (resultado.length === 0) {
+            return res.status(404).json({ message: 'No hay empleados disponibles con horarios para este servicio.' });
+        }
 
         res.json(resultado);
     } catch (error) {

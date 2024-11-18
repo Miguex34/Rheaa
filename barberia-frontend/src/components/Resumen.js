@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 const Resumen = () => {
     const navigate = useNavigate();
 
+    // Recuperar datos del sessionStorage
     const negocioSeleccionado = JSON.parse(sessionStorage.getItem('negocioSeleccionado'));
     const servicioSeleccionado = JSON.parse(sessionStorage.getItem('servicioSeleccionado'));
     const empleadoSeleccionado = JSON.parse(sessionStorage.getItem('empleadoSeleccionado'));
@@ -11,7 +12,16 @@ const Resumen = () => {
     const fechaSeleccionada = sessionStorage.getItem('fechaSeleccionada');
 
     const handleVolver = () => {
-        navigate('/pregunta-preferencia'); // Redirige a `Pregunta de Preferencia.`
+        console.log('Volviendo a PrimeraHoraDisponible...');
+        // Restablecer negocioSeleccionado y servicioSeleccionado al formato simple
+        if (negocioSeleccionado?.id && negocioSeleccionado?.nombre) {
+            sessionStorage.setItem('negocioSeleccionado', negocioSeleccionado.id);
+        }
+        if (servicioSeleccionado?.id && servicioSeleccionado?.nombre) {
+            sessionStorage.setItem('servicioSeleccionado', servicioSeleccionado.id);
+        }
+        console.log('SessionStorage después de ajustar al volver:', sessionStorage);
+        navigate('/pregunta-preferencia'); // Redirige a la selección de preferencia
     };
 
     if (!negocioSeleccionado || !servicioSeleccionado || !empleadoSeleccionado || !bloqueSeleccionado) {

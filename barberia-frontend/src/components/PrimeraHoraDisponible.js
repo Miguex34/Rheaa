@@ -27,10 +27,12 @@ const PrimeraHoraDisponible = ({ negocioId, servicioId }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        console.log('Inicializando PrimeraHoraDisponible...');
+        console.log('Antes de limpiar:', sessionStorage);
         sessionStorage.removeItem('bloqueSeleccionado');
         sessionStorage.removeItem('empleadoSeleccionado');
         sessionStorage.removeItem('fechaSeleccionada');
-
+        console.log('Después de limpiar:', sessionStorage);
         if (!negocioId || !servicioId) {
             setError('ID de negocio o servicio no está definido.');
             setLoading(false);
@@ -73,16 +75,33 @@ const PrimeraHoraDisponible = ({ negocioId, servicioId }) => {
     };
 
     const handleBloqueSeleccion = (bloque, empleadoId, empleadoNombre) => {
+        console.log('Bloque seleccionado:', bloque); // Depurar
+        console.log('Empleado seleccionado:', { empleadoId, empleadoNombre });
+
+
         setBloqueSeleccionado({ ...bloque, empleadoId, empleadoNombre });
         sessionStorage.setItem('bloqueSeleccionado', JSON.stringify({ ...bloque, empleadoId, empleadoNombre }));
         sessionStorage.setItem('empleadoSeleccionado', JSON.stringify({ empleadoId, empleadoNombre }));
         sessionStorage.setItem('fechaSeleccionada', diaSeleccionado); // Guarda la fecha seleccionada
+
+        console.log('SessionStorage después de guardar:'); // Depurar
+        console.log('bloqueSeleccionado:', sessionStorage.getItem('bloqueSeleccionado'));
+        console.log('empleadoSeleccionado:', sessionStorage.getItem('empleadoSeleccionado'));
+        console.log('fechaSeleccionada:', sessionStorage.getItem('fechaSeleccionada'));
     };
 
     const handleSiguiente = () => {
         if (bloqueSeleccionado) {
-            sessionStorage.setItem('negocioSeleccionado', JSON.stringify({ id: negocioId, nombre: negocioNombre }));
-            sessionStorage.setItem('servicioSeleccionado', JSON.stringify({ id: servicioId, nombre: servicioNombre }));
+            sessionStorage.setItem(
+                'negocioSeleccionado',
+                JSON.stringify({ id: negocioId, nombre: negocioNombre })
+            );
+            sessionStorage.setItem(
+                'servicioSeleccionado',
+                JSON.stringify({ id: servicioId, nombre: servicioNombre })
+            );
+            sessionStorage.setItem('bloqueSeleccionado', JSON.stringify(bloqueSeleccionado));
+            sessionStorage.setItem('fechaSeleccionada', diaSeleccionado);
             navigate('/resumen');
         } else {
             alert('Por favor, seleccione un bloque de horario antes de continuar.');
