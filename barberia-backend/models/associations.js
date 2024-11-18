@@ -26,6 +26,9 @@ HorarioNegocio.belongsTo(Negocio, { foreignKey: 'id_negocio', as: 'negocio' });
 Usuario.hasMany(DisponibilidadEmpleado, { foreignKey: 'id_usuario', as: 'disponibilidades' });
 DisponibilidadEmpleado.belongsTo(Usuario, { foreignKey: 'id_usuario' });
 
+EmpleadoNegocio.hasMany(DisponibilidadEmpleado, { foreignKey: 'id_usuario', sourceKey: 'id_usuario', as: 'disponibilidades' });
+DisponibilidadEmpleado.belongsTo(EmpleadoNegocio, { foreignKey: 'id_usuario', targetKey: 'id_usuario', as: 'empleado' });
+
 // Asociación: Un Negocio tiene muchos Empleados
 Negocio.hasMany(EmpleadoNegocio, { foreignKey: 'id_negocio', as: 'empleados' });
 EmpleadoNegocio.belongsTo(Negocio, { foreignKey: 'id_negocio' });

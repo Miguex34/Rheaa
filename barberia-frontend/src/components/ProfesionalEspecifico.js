@@ -1,30 +1,50 @@
-// src/components/ProfesionalEspecifico.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Calendar } from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { useNavigate } from 'react-router-dom'; // Para la navegación
+import { useNavigate } from 'react-router-dom';
 
 const ProfesionalEspecifico = ({ negocioId, servicioId }) => {
     const [empleados, setEmpleados] = useState([]);
     const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState(null);
-    const [diasDisponibles, setDiasDisponibles] = useState([]);
+    const [diasDisponibles, setDiasDisponibles] = useState([]); // Inicializamos como un array vacío
     const [bloquesDisponibles, setBloquesDisponibles] = useState([]);
-    const [bloqueSeleccionado, setBloqueSeleccionado] = useState(null); // Estado para el bloque seleccionado
-    const navigate = useNavigate(); // Hook para la navegación
+    const [bloqueSeleccionado, setBloqueSeleccionado] = useState(null);
+    const [negocioNombre, setNegocioNombre] = useState('');
+    const [servicioNombre, setServicioNombre] = useState('');
     // eslint-disable-next-line no-unused-vars
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchProfesionales = async () => {
+        console.log('Inicializando ProfesionalEspecifico...');
+        sessionStorage.removeItem('bloqueSeleccionado');
+        sessionStorage.removeItem('empleadoSeleccionado');
+        sessionStorage.removeItem('fechaSeleccionada');
+
+        const fetchDatos = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/api/reserva-horario/disponibilidad/empleados/${negocioId}/${servicioId}`);
-                setEmpleados(response.data);
+                const generalResponse = await axios.get(
+                    `http://localhost:5000/api/reserva-horario/disponibilidad/general/${negocioId}/${servicioId}`
+                );
+
+                const empleadosResponse = await axios.get(
+                    `http://localhost:5000/api/reserva-horario/disponibilidad/empleados/${negocioId}/${servicioId}`
+                );
+
+                const { negocio, servicio, diasDisponibles: dias } = generalResponse.data;
+
+                setEmpleados(empleadosResponse.data || []); // Asegúrate de que sea un array
+                setDiasDisponibles(dias || []); // Aquí aseguramos que sea un array
+                setNegocioNombre(negocio.nombre);
+                setServicioNombre(servicio.nombre);
             } catch (error) {
-                console.error('Error al obtener los profesionales:', error);
+                console.error('Error al obtener los datos:', error);
+                setDiasDisponibles([]); // Manejo de error
             }
         };
-        fetchProfesionales();
+
+        fetchDatos();
     }, [negocioId, servicioId]);
 
     const handleSeleccionarEmpleado = async (empleado) => {
@@ -32,36 +52,57 @@ const ProfesionalEspecifico = ({ negocioId, servicioId }) => {
         setLoading(true);
 
         try {
-            const response = await axios.get(`http://localhost:5000/api/reserva-horario/disponibilidad/empleado/${negocioId}/${servicioId}/${empleado.id}`);
-            setDiasDisponibles(response.data);
+            const response = await axios.get(
+                `http://localhost:5000/api/reserva-horario/disponibilidad/empleado/${negocioId}/${servicioId}/${empleado.id}`
+            );
+            setDiasDisponibles(response.data.diasDisponibles || []); // Manejo seguro
         } catch (error) {
             console.error('Error al obtener disponibilidad del empleado:', error);
+            setDiasDisponibles([]); // Reinicia en caso de error
         } finally {
             setLoading(false);
         }
     };
 
     const handleBloqueSeleccionado = (bloque) => {
-        setBloqueSeleccionado(bloque); // Guardar el bloque seleccionado
+        const fecha = diasDisponibles.find((d) =>
+            d.bloques?.some((b) => b.hora_inicio === bloque.hora_inicio && b.hora_fin === bloque.hora_fin)
+        )?.fecha;
+
+        if (!fecha) {
+            console.warn('No se encontró una fecha para el bloque seleccionado:', bloque);
+            return;
+        }
+
+        setBloqueSeleccionado({ ...bloque, fecha });
+        sessionStorage.setItem('bloqueSeleccionado', JSON.stringify({ ...bloque, fecha }));
+        sessionStorage.setItem(
+            'empleadoSeleccionado',
+            JSON.stringify({
+                empleadoId: empleadoSeleccionado.id,
+                empleadoNombre: empleadoSeleccionado.nombre,
+            })
+        );
+        sessionStorage.setItem('fechaSeleccionada', fecha);
     };
 
     const handleSiguiente = () => {
         if (empleadoSeleccionado && bloqueSeleccionado) {
-            navigate('/resumen', {
-                state: {
-                    negocioId,
-                    servicioId,
-                    empleadoId: empleadoSeleccionado.id,
-                    fecha: bloqueSeleccionado.fecha,
-                    bloque: bloqueSeleccionado,
-                },
-            });
+            sessionStorage.setItem(
+                'negocioSeleccionado',
+                JSON.stringify({ id: negocioId, nombre: negocioNombre })
+            );
+            sessionStorage.setItem(
+                'servicioSeleccionado',
+                JSON.stringify({ id: servicioId, nombre: servicioNombre })
+            );
+
+            navigate('/resumen');
         } else {
             alert('Por favor, selecciona un empleado y un bloque de horario antes de continuar.');
         }
     };
 
-    // "Nuevo" - Función para dividir los bloques en filas de 5
     const dividirEnFilas = (arr, tamanio) => {
         const filas = [];
         for (let i = 0; i < arr.length; i += tamanio) {
@@ -74,7 +115,6 @@ const ProfesionalEspecifico = ({ negocioId, servicioId }) => {
         <div style={{ padding: '20px', textAlign: 'center' }}>
             <h2>Selecciona un Profesional</h2>
 
-            {/* Mostrar lista de empleados */}
             <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
                 {empleados.length > 0 ? (
                     empleados.map((empleado) => (
@@ -102,7 +142,6 @@ const ProfesionalEspecifico = ({ negocioId, servicioId }) => {
                 )}
             </div>
 
-            {/* Mostrar calendario de disponibilidad del empleado seleccionado */}
             {empleadoSeleccionado && (
                 <div style={{ marginTop: '20px' }}>
                     <h3>Disponibilidad de {empleadoSeleccionado.nombre}</h3>
@@ -113,15 +152,17 @@ const ProfesionalEspecifico = ({ negocioId, servicioId }) => {
                             setBloquesDisponibles(diaEncontrado ? diaEncontrado.bloques : []);
                         }}
                         tileDisabled={({ date }) => {
+                            if (!Array.isArray(diasDisponibles)) return true;
+
                             const fechaTile = date.toISOString().split('T')[0];
                             const diaEncontrado = diasDisponibles.find((dia) => dia.fecha === fechaTile);
+
                             return !diaEncontrado || !diaEncontrado.disponible;
                         }}
                     />
                 </div>
             )}
 
-            {/* Mostrar bloques de horario disponibles en filas de 5 */}
             {bloquesDisponibles.length > 0 && (
                 <div style={{ marginTop: '20px' }}>
                     <h3>Bloques de horario disponibles</h3>
@@ -130,7 +171,7 @@ const ProfesionalEspecifico = ({ negocioId, servicioId }) => {
                             {fila.map((bloque, index) => (
                                 <button
                                     key={index}
-                                    onClick={() => handleBloqueSeleccionado({ ...bloque, fecha: diasDisponibles.find(d => d.bloques?.some(b => b === bloque))?.fecha || '' })}
+                                    onClick={() => handleBloqueSeleccionado(bloque)}
                                     style={{
                                         cursor: 'pointer',
                                         backgroundColor: bloqueSeleccionado?.hora_inicio === bloque.hora_inicio ? '#4CAF50' : '#f9f9f9',
@@ -150,7 +191,6 @@ const ProfesionalEspecifico = ({ negocioId, servicioId }) => {
                 </div>
             )}
 
-            {/* Botón de siguiente */}
             {bloqueSeleccionado && (
                 <button
                     onClick={handleSiguiente}

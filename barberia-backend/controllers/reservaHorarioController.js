@@ -134,13 +134,23 @@ exports.obtenerDisponibilidadEmpleado = async (req, res) => {
     const { negocioId, empleadoId, servicioId } = req.params;
 
     try {
-        // Paso 1: Obtener duración del servicio
-        const servicio = await Servicio.findByPk(servicioId);
+        // Obtener datos del negocio
+        const negocio = await Negocio.findByPk(negocioId, {
+            attributes: ['id', 'nombre']
+        });
+        if (!negocio) {
+            return res.status(404).json({ message: 'Negocio no encontrado' });
+        }
+
+        // Obtener datos del servicio
+        const servicio = await Servicio.findByPk(servicioId, {
+            attributes: ['id', 'nombre', 'duracion']
+        });
         if (!servicio) {
             return res.status(404).json({ message: 'Servicio no encontrado' });
         }
-        const duracionServicio = servicio.duracion; // Duración en minutos
 
+        const duracionServicio = servicio.duracion; // Duración en minutos
         const diasDisponibles = [];
 
         // Iterar sobre las próximas 4 semanas (28 días)
@@ -212,7 +222,19 @@ exports.obtenerDisponibilidadEmpleado = async (req, res) => {
             });
         }
 
-        res.json(diasDisponibles);
+        // Respuesta con el formato esperado
+        res.json({
+            negocio: {
+                id: negocio.id,
+                nombre: negocio.nombre
+            },
+            servicio: {
+                id: servicio.id,
+                nombre: servicio.nombre,
+                duracion: servicio.duracion
+            },
+            diasDisponibles
+        });
     } catch (error) {
         console.error("Error al obtener disponibilidad del empleado:", error);
         res.status(500).json({ error: error.message });
@@ -462,30 +484,24 @@ exports.obtenerEmpleadosDisponibles = async (req, res) => {
             },
             include: [
                 {
-                    model: Usuario,
-                    attributes: ['id', 'nombre']
+                    model: Usuario, // Incluimos el modelo Usuario
+                    attributes: ['id', 'nombre'] // Traemos solo el ID y nombre
                 },
                 {
-                    model: DisponibilidadEmpleado, // Modelo de disponibilidad
-                    where: {
-                        id_negocio: negocioId,
-                        disponible: true // Validar que tenga días disponibles
-                    },
-                    required: true, // Solo incluye empleados con disponibilidad
-                    attributes: [] // No necesitamos traer los detalles
+                    model: DisponibilidadEmpleado,
+                    as: 'disponibilidades', // Usar el alias definido en las asociaciones
+                    attributes: ['disponible'], // Solo traemos el campo necesario
                 }
             ]
         });
 
-        // Formatear la respuesta
-        const resultado = empleados.map(empleado => ({
-            id: empleado.Usuario.id,
-            nombre: empleado.Usuario.nombre
-        }));
-
-        if (resultado.length === 0) {
-            return res.status(404).json({ message: 'No hay empleados disponibles con horarios para este servicio.' });
-        }
+        // Filtrar empleados con al menos un día disponible
+        const resultado = empleados
+            .filter(empleado => empleado.disponibilidades.some(d => d.disponible)) // Verifica disponibilidad
+            .map(empleado => ({
+                id: empleado.Usuario.id, // ID del empleado desde el modelo Usuario
+                nombre: empleado.Usuario.nombre // Nombre del empleado desde el modelo Usuario
+            }));
 
         res.json(resultado);
     } catch (error) {
