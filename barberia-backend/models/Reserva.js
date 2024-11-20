@@ -23,7 +23,16 @@ const Reserva = sequelize.define('Reserva', {
     allowNull: false,
   },
   fecha: {
-    type: DataTypes.DATE,
+    type: DataTypes.DATEONLY,
+    allowNull: false,
+  },
+  // Nuevos campos para almacenar el horario específico de la reserva
+  hora_inicio: {
+    type: DataTypes.TIME,
+    allowNull: false,
+  },
+  hora_fin: {
+    type: DataTypes.TIME,
     allowNull: false,
   },
   estado: {
