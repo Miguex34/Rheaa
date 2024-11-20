@@ -8,6 +8,7 @@ const Soporte = () => {
   
   const [user, setUser] = useState({ nombre: '', correo: '', id_negocio: null });
   const [asunto, setAsunto] = useState('');
+  const [negocio, setNegocio] = useState({ id: null, nombre: '' });
   const [descripcion, setDescripcion] = useState('');
   const [prioridad, setPrioridad] = useState('media');
   const [imagen, setImagen] = useState(null);
