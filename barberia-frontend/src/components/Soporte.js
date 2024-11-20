@@ -29,6 +29,16 @@ const FormularioSoporte = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Validaciones
+    if (formData.asunto === '') {
+        setMensaje('Por favor, seleccione un asunto.');
+        return;
+      }
+  
+      if (formData.descripcion.trim().length < 10 || formData.descripcion.trim().length > 500) {
+        setMensaje('La descripción debe tener entre 10 y 500 caracteres.');
+        return;
+      }
 
     try {
       const token = localStorage.getItem('token');
@@ -106,11 +116,24 @@ const FormularioSoporte = () => {
               onChange={handleChange}
               className="p-2 border rounded w-full bg-gray-100"
             >
-              <option value="">Seleccione un asunto</option>
-              <option value="Problema al crear un servicio">Problema al crear un servicio</option>
-              <option value="Problema con la cuenta">Problema con la cuenta</option>
-              <option value="Problema con pagos">Problema con pagos</option>
-              <option value="Otro">Otro</option>
+            <option value="">Seleccione un asunto</option>
+            <option value="Problema al crear un servicio">Problema al crear un servicio</option>
+            <option value="Problema con la cuenta">Problema con la cuenta</option>
+            <option value="Problema con pagos">Problema con pagos</option>
+            <option value="Problema con el calendario">Problema con el calendario</option>
+            <option value="Problema con las notificaciones">Problema con las notificaciones</option>
+            <option value="Error al registrar empleados">Error al registrar empleados</option>
+            <option value="Error en la disponibilidad de empleados">Error en la disponibilidad de empleados</option>
+            <option value="Problema con la visualización del negocio">Problema con la visualización del negocio</option>
+            <option value="Dificultades para acceder a la cuenta">Dificultades para acceder a la cuenta</option>
+            <option value="Error en el registro de clientes">Error en el registro de clientes</option>
+            <option value="Consulta sobre configuración del negocio">Consulta sobre configuración del negocio</option>
+            <option value="Consulta sobre tarifas o suscripciones">Consulta sobre tarifas o suscripciones</option>
+            <option value="Error al subir imágenes o documentos">Error al subir imágenes o documentos</option>
+            <option value="Problema con las reservas de clientes">Problema con las reservas de clientes</option>
+            <option value="Error en el sistema de soporte">Error en el sistema de soporte</option>
+            <option value="Problema con la integración de pagos">Problema con la integración de pagos</option>
+            <option value="Otro">Otro</option>
             </select>
           </div>
           <div>
