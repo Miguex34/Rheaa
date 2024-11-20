@@ -31,9 +31,11 @@ const servicioRoutes = require('./routes/servicioRoutes');
 const pagoRoutes = require('./routes/pagoRoutes');
 const horarioRoutes = require('./routes/horarioRoutes');
 const disponibilidadEmpleadoRoutes = require('./routes/disponibilidadEmpleadoRoutes');
+const panelReservasRoutes = require('./routes/panelReservasRoutes');
 const authMiddleware = require('./middleware/authMiddleware');
 const eventoRoutes = require('./routes/eventoRoutes');
 const app = express();
+
 
 // Importa la ruta de reserva de horario
 const reservaHorarioRoutes = require('./routes/reservaHorarioRoutes');
@@ -58,6 +60,9 @@ app.use('/api/reservas', authMiddleware, reservaRoutes);
 
 // Registrar las rutas de reserva de horarios con el prefijo /api/reserva-horario
 app.use('/api/reserva-horario', reservaHorarioRoutes);
+
+// Rutas para el panel de reservas
+app.use('/api/panel-reservas', panelReservasRoutes);
 
 // Servir archivos estáticos desde la carpeta 'uploads'
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
