@@ -55,6 +55,22 @@ const VistaCliente = () => {
 
     fetchData();
   }, [nombre]);
+  const handleOpenLoginModal = () => {
+    setModalLoginOpen(true);
+  };
+
+  const handleCloseLoginModal = () => {
+    setModalLoginOpen(false);
+  };
+
+  const handleOpenRegisterModal = () => {
+    setModalRegisterOpen(true);
+  };
+
+  const handleCloseRegisterModal = () => {
+    setModalRegisterOpen(false);
+  };
+
   
   const seleccionarServicio = (servicio) => {
     sessionStorage.setItem('servicioSeleccionado', servicio.id); // Guardar el ID del servicio en sessionStorage

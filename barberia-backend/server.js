@@ -3,9 +3,7 @@ const cors = require('cors');
 const sequelize = require('./config/database'); // Configuración de la base de 
 const bodyParser = require('body-parser');
 const path = require('path');
-
 require('./models/associations'); // Asociaciones entre modelos
-const path = require('path');
 
 // Importa tus modelos explícitamente
 const Usuario = require('./models/Usuario');
@@ -22,7 +20,6 @@ const Evento = require('./models/Evento');
 const transbankConfig = require('./config/transbankConfig.js');
 const EmpleadoServicio = require('./models/EmpleadoServicio.js');
 const Soporte = require('./models/Soporte');
-const authMiddleware = require('./middleware/authMiddleware');
 const transbankRoutes = require('./routes/transbankRoutes');
 
 
