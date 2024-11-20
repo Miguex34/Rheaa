@@ -16,7 +16,7 @@ import RegistroEmpleado from './components/RegistroEmpleado';
 import './index.css';
 import Reserva from './components/Reserva';
 import Disponibilidad from './components/Disponibilidad';
-
+import RegistroCliente from './components/RegistroCliente';
 
 // Función PrivateRoute para proteger rutas privadas
 const PrivateRoute = ({ children }) => {
@@ -27,12 +27,22 @@ const PrivateRoute = ({ children }) => {
 const AppContent = () => {
   const token = localStorage.getItem('token');
   const location = useLocation();
-  const isAuthRoute = location.pathname === '/login' || location.pathname === '/register';
-  const showSidebar = token && !isAuthRoute;
+  location.pathname.startsWith('/cliente') || location.pathname.startsWith('/negocio');
 
-  return (
+  const routesWithSidebar = [
+    '/',
+    '/panel-reservas',
+    '/servicios',
+    '/profesionales',
+    '/calendario',
+    '/configuracion',
+  ];
+  
+  const showSidebar = token && routesWithSidebar.some((route) => location.pathname.startsWith(route));
+
+    return (
     <div className="flex">
-      {/* Mostrar la barra lateral solo en rutas privadas */}
+      {/* Mostrar el Sidebar solo en rutas permitidas */}
       {showSidebar && <Sidebar tieneNegocio={true} />}
 
       <div className={`flex-grow p-4 ${showSidebar ? 'ml-64' : ''}`}>
@@ -41,11 +51,10 @@ const AppContent = () => {
           <Route path="/cliente/:id_negocio" element={<VistaCliente />} />
           <Route path="/disponibilidad/:id_negocio" element={<Disponibilidad />} />
           <Route path="/reserva/:negocioId/:servicioId/:horarioId" element={<Reserva />} />
-
           {/* Rutas públicas para Login y Registro */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-
+          <Route path="/registro-cliente" element={<RegistroCliente />} />
           {/* Nueva ruta pública para registro del empleado usando el token */}
           <Route path="/registro/:token" element={<RegistroEmpleado />} />
 

@@ -19,7 +19,9 @@ const Cliente = require('./models/Cliente');
 const Evento = require('./models/Evento');
 const transbankConfig = require('./config/transbankConfig.js');
 const EmpleadoServicio = require('./models/EmpleadoServicio.js');
-
+const Soporte = require('./models/Soporte');
+const authMiddleware = require('./middleware/authMiddleware');
+const transbankRoutes = require('./routes/transbankRoutes');
 
 // Importa tus rutas
 const userRoutes = require('./routes/userRoutes');
@@ -30,10 +32,11 @@ const servicioRoutes = require('./routes/servicioRoutes');
 const pagoRoutes = require('./routes/pagoRoutes');
 const horarioRoutes = require('./routes/horarioRoutes');
 const disponibilidadEmpleadoRoutes = require('./routes/disponibilidadEmpleadoRoutes');
-const authMiddleware = require('./middleware/authMiddleware');
 const eventoRoutes = require('./routes/eventoRoutes');
 const app = express();
 const proxyRoutes = require('./routes/proxyRoutes');
+const soporteRoutes = require('./routes/soporteRoutes');
+const clienteRoutes = require('./routes/clienteRoutes');
 // Middleware para procesar JSON y habilitar CORS
 app.use(cors());
 app.use(express.json());
@@ -51,6 +54,9 @@ app.use('/api/horarios', horarioRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/eventos', eventoRoutes);
 app.use('/api/reservas', authMiddleware, reservaRoutes);
+app.use('/api/soportes', soporteRoutes);
+app.use('/api/transbank', transbankRoutes);
+app.use('/api/clientes', clienteRoutes);
 app.use(proxyRoutes);
 
 // Función asincrónica para sincronizar la base de datos en el orden correcto
@@ -71,6 +77,7 @@ const syncDatabase = async () => {
     await Pago.sync({ force: false });
     await Evento.sync({ force: false });
     await EmpleadoServicio.sync({ force: false });
+    await Soporte.sync({ force: false });
     console.log('Tablas sincronizadas correctamente.');
   } catch (error) {
     console.error('Error al conectar o sincronizar la base de datos:', error);

@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import fondo1 from '../assets/images/fondo1.png';
+import LoginForm from './LoginCliente';
+import RegistroCliente from './RegistroCliente';
 
 const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
 const VistaCliente = () => {
   const { nombre } = useParams(); // Obtener el nombre del negocio desde la URL
+  const navigate = useNavigate();
   const [negocio, setNegocio] = useState(null);
   const [servicios, setServicios] = useState([]);
   const [horarios, setHorarios] = useState([]);
@@ -15,6 +18,9 @@ const VistaCliente = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedServicio, setSelectedServicio] = useState(null);
   const [filtroCategoria, setFiltroCategoria] = useState('');
+  const [modalLoginOpen, setModalLoginOpen] = useState(false);
+  const [modalRegisterOpen, setModalRegisterOpen] = useState(false);
+  const [auth, setAuth] = useState(!!localStorage.getItem('token'));
 
   useEffect(() => {
     // Función para obtener información del negocio, servicios y horarios
@@ -24,12 +30,16 @@ const VistaCliente = () => {
         const responseNegocio = await axios.get(`http://localhost:5000/api/negocios/${nombre}`);
         setNegocio(responseNegocio.data);
 
-        // Obtener los servicios del negocio usando el ID del negocio
-        const responseServicios = await axios.get(`http://localhost:5000/api/servicios/negocio/${responseNegocio.data.id}`);
-        setServicios(responseServicios.data);
+        const negocioId = responseNegocio.data.id;
 
-        // Obtener los horarios del negocio usando el ID del negocio
-        const responseHorarios = await axios.get(`http://localhost:5000/api/horarios/negocio/${responseNegocio.data.id}`);
+        // Realizar las solicitudes de servicios y horarios en paralelo
+        const [responseServicios, responseHorarios] = await Promise.all([
+          axios.get(`http://localhost:5000/api/servicios/negocio/${negocioId}`),
+          axios.get(`http://localhost:5000/api/horarios/negocio/${negocioId}`)
+        ]);
+
+        // Establecer los servicios y horarios en el estado
+        setServicios(responseServicios.data);
         setHorarios(responseHorarios.data);
 
         setLoading(false);
@@ -52,6 +62,26 @@ const VistaCliente = () => {
     setSelectedServicio(null);
   };
 
+  const handleOpenLoginModal = () => {
+    setModalLoginOpen(true);
+  };
+
+  const handleCloseLoginModal = () => {
+    setModalLoginOpen(false);
+  };
+
+  const handleOpenRegisterModal = () => {
+    setModalRegisterOpen(true);
+  };
+
+  const handleCloseRegisterModal = () => {
+    setModalRegisterOpen(false);
+  };
+
+  const handleRegister = () => {
+    navigate('/register', { state: { negocio } });
+  };
+
   const serviciosFiltrados = filtroCategoria
     ? servicios.filter(servicio => servicio.categoria === filtroCategoria)
     : servicios;
@@ -66,7 +96,24 @@ const VistaCliente = () => {
 
   return (
     <div className="container mx-auto p-6">
-      {/* Banner */}
+      {/* Navbar */}
+      <div className="flex justify-between items-center bg-gray-800 text-white px-6 py-4">
+        <h1 className="text-xl font-bold">Vista Cliente</h1>
+        <div>
+          <button
+            onClick={handleOpenLoginModal}
+            className="bg-blue-500 px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300 mr-2"
+          >
+            Login
+          </button>
+          <button
+            onClick={handleOpenRegisterModal}
+            className="bg-green-500 px-4 py-2 rounded-md hover:bg-green-600 transition duration-300"
+          >
+            Register
+          </button>
+        </div>
+      </div>
       <div className="mb-6">
         <img src={fondo1} alt="Banner" className="w-full object-cover h-64 rounded-lg shadow-md" />
       </div>
@@ -172,11 +219,30 @@ const VistaCliente = () => {
           </div>
         </div>
       )}
+
+      {/* Modal para Login */}
+      {modalLoginOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded-md shadow-lg max-w-md w-full">
+            <LoginForm closeModal={handleCloseLoginModal} />
+          </div>
+        </div>
+      )}
+
+      {/* Modal para Registro */}
+      {modalRegisterOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded-md shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <RegistroCliente closeModal={handleCloseRegisterModal} setAuth={setAuth} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default VistaCliente;
+
 
 
 

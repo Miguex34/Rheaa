@@ -10,6 +10,8 @@ const Pago = require('./Pago');
 const Cliente = require('./Cliente');
 const Evento = require('./Evento');
 const EmpleadoServicio = require('./EmpleadoServicio');
+const Soporte = require('./Soporte');
+
 // Asociación: Un Usuario tiene un Negocio (Dueño)
 Usuario.hasOne(Negocio, { foreignKey: 'id_dueno', as: 'negocio' });
 Negocio.belongsTo(Usuario, { foreignKey: 'id_dueno', as: 'dueno' });
@@ -98,6 +100,14 @@ Negocio.belongsToMany(Usuario, {
   as: 'empleadosNegocio'
 });
 
+// Un Usuario tiene muchas Solicitudes de Soporte
+Usuario.hasMany(Soporte, { foreignKey: 'id_usuario', as: 'solicitudesSoporte' });
+Soporte.belongsTo(Usuario, { foreignKey: 'id_usuario', as: 'creadorSoporte' }); 
+
+// Un Negocio tiene muchas Solicitudes de Soporte
+Negocio.hasMany(Soporte, { foreignKey: 'id_negocio', as: 'solicitudesNegocio' });
+Soporte.belongsTo(Negocio, { foreignKey: 'id_negocio', as: 'negocioSoporte' });
+
 
 
 module.exports = {
@@ -113,4 +123,5 @@ module.exports = {
   Pago,
   Evento,
   EmpleadoServicio,
+  Soporte,
 };
