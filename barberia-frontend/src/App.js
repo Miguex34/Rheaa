@@ -21,6 +21,7 @@ import PrimeraHoraDisponible from './components/PrimeraHoraDisponible';
 import ProfesionalEspecifico from './components/ProfesionalEspecifico';
 import Resumen from './components/Resumen';
 import RegistroCliente from './components/RegistroCliente';
+import TicketsSoporte from './components/TicketsSoporte';
 
 // Función PrivateRoute para proteger rutas privadas
 const PrivateRoute = ({ children }) => {
@@ -78,6 +79,7 @@ const AppContent = () => {
           <Route path="/configuracion" element={<PrivateRoute><Configuracion /></PrivateRoute>} />
           <Route path="/soporte" element={<PrivateRoute><Soporte /></PrivateRoute>} />
           <Route path="/negocio/:nombre" element={<VistaCliente />} />
+          <Route path="/soporteAdmin" element={<TicketsSoporte />} />
 
           {/* Redireccionar rutas no encontradas */}
           <Route path="*" element={<Navigate to={token ? "/" : "/login"} replace />} />
