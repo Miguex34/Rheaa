@@ -70,6 +70,34 @@ const VistaCliente = () => {
   const handleCloseRegisterModal = () => {
     setModalRegisterOpen(false);
   };
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setAuth(false);
+    window.location.reload();
+  };
+
+  const handleLogin = async (email, password) => {
+    try {
+      const response = await axios.post('http://localhost:5000/api/clientes/loginc', {
+        correo: email,
+        contraseña: password,
+      });
+  
+      if (response.status === 200) {
+        // Guardar el token en localStorage y actualizar el estado de autenticación
+        localStorage.setItem('token', response.data.token);
+        setAuth(true); // Esto actualizará el estado para forzar el re-renderizado del componente
+        handleCloseLoginModal(); // Cerrar el modal de login
+      }
+    } catch (error) {
+      console.error('Error al iniciar sesión:', error);
+      alert('Error al iniciar sesión: ' + (error.response?.data?.message || 'Revise sus credenciales e intente nuevamente.'));
+    }
+  };
+  useEffect(() => {
+    setAuth(!!localStorage.getItem('token'));
+  }, []);
+  
 
   
   const seleccionarServicio = (servicio) => {
@@ -96,19 +124,38 @@ const VistaCliente = () => {
       <div className="flex justify-between items-center bg-gray-800 text-white px-6 py-4">
         <h1 className="text-xl font-bold">Vista Cliente</h1>
         <div>
-          <button
-            onClick={handleOpenLoginModal}
-            className="bg-blue-500 px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300 mr-2"
-          >
-            Login
-          </button>
-          <button
-            onClick={handleOpenRegisterModal}
-            className="bg-green-500 px-4 py-2 rounded-md hover:bg-green-600 transition duration-300"
-          >
-            Register
-          </button>
-        </div>
+    {auth ? (
+      <>
+        <button
+          onClick={() => navigate('/cuenta')}
+          className="bg-gray-500 px-4 py-2 rounded-md hover:bg-gray-600 transition duration-300 mr-2"
+        >
+          Cuenta
+        </button>
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 px-4 py-2 rounded-md hover:bg-red-600 transition duration-300"
+        >
+          Cerrar Sesión
+        </button>
+      </>
+    ) : (
+      <>
+        <button
+          onClick={handleOpenLoginModal}
+          className="bg-blue-500 px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300 mr-2"
+        >
+          Login
+        </button>
+        <button
+          onClick={handleOpenRegisterModal}
+          className="bg-green-500 px-4 py-2 rounded-md hover:bg-green-600 transition duration-300"
+        >
+          Register
+        </button>
+      </>
+    )}
+  </div>
       </div>
       <div className="mb-6">
         <img src={fondo1} alt="Banner" className="w-full object-cover h-64 rounded-lg shadow-md" />
@@ -205,8 +252,7 @@ const VistaCliente = () => {
       {modalLoginOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-md shadow-lg max-w-md w-full">
-            <LoginForm closeModal={handleCloseLoginModal} />
-          </div>
+          <LoginForm closeModal={handleCloseLoginModal} onLogin={handleLogin} />        </div>
         </div>
       )}
 

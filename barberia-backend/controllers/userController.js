@@ -96,10 +96,12 @@ const login = async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Contraseña incorrecta' });
     }
-
-    const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, {
-      expiresIn: '1d',
-    });
+    console.log("Cargo obtenido del usuario para el token:", usuario.cargo);
+    const token = jwt.sign(
+      { id: usuario.id, correo: usuario.correo, cargo: usuario.cargo }, 
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
 
     return res.status(200).json({ message: 'Inicio de sesión exitoso', token });
   } catch (error) {

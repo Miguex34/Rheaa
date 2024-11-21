@@ -10,12 +10,15 @@ const LoginForm = ({ closeModal, setAuth }) => {
     setFormData({ ...formData, [name]: value });
   };
 
+  
+
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/api/clientes/login', formData);
+      const response = await axios.post('http://localhost:5000/api/clientes/loginc', formData);
       // Guarda el token en localStorage
       localStorage.setItem('token', response.data.token);
+      window.dispatchEvent(new Event('storage'));
       // Actualiza el estado de autenticación a verdadero
       setAuth(true);
       // Cierra el modal después del login exitoso
@@ -63,4 +66,3 @@ const LoginForm = ({ closeModal, setAuth }) => {
 };
 
 export default LoginForm;
-
