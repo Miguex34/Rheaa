@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; // Importar useNavigate
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { FcMinus, FcPlus  } from "react-icons/fc";
 
 const Servicios = () => {
   const [form, setForm] = useState({
@@ -157,8 +160,12 @@ const Servicios = () => {
         id_negocio: form.id_negocio,
       });
       setEditingId(null); // Restablece el modo de edición
+      toast.success('¡Servicio creado correctamente!',{
+        icon: FcPlus ,
+      });
+
     } catch (error) {
-      console.error('Error al guardar el servicio:', error);
+      toast.error('Error al guardar el servicio. Inténtalo nuevamente.');
     }
   };
 
@@ -185,12 +192,17 @@ const Servicios = () => {
       });
       // Eliminar el servicio de la lista sin recargar todos los servicios
       setServicios((prevServicios) => prevServicios.filter(servicio => servicio.id !== id));
+      toast.success("Servicio eliminado correctamente", {
+        icon: FcMinus,
+      });
+
     } catch (error) {
       console.error('Error al eliminar el servicio:', error);
     }
   };
   return (
     <div className="container mx-auto p-6 bg-white shadow-lg rounded-lg">
+      <ToastContainer position="top-center" autoClose={5000} />
       <h2 className="text-3xl font-bold mb-6 text-center text-blue-600">Gestión de Servicios</h2>
       
       <form onSubmit={handleSubmit} className="mb-6 p-4 bg-gray-100 rounded-lg shadow-sm">
