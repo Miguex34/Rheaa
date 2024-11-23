@@ -25,7 +25,8 @@ import TicketsSoporte from './components/TicketsSoporte';
 import ServiciosEmp from './components/ServiciosEmp';
 import { jwtDecode } from 'jwt-decode';
 import ProtectedRoute from './components/ProtectedRoute';
-
+import 'react-toastify/dist/ReactToastify.css';
+import CuentaClient from './components/CuentaClient';
 // Función PrivateRoute para proteger rutas privadas
 
 const AppContent = () => {
@@ -139,7 +140,7 @@ const AppContent = () => {
           <Route path="/profesional-especifico/:servicioId" element={<ProfesionalEspecifico />} />
           <Route path="/resumen" element={<Resumen />} />
           <Route path="/negocio/:nombre" element={<VistaCliente />} />
-
+          <Route path="/cuenta-cliente" element={<CuentaClient />} />
 
           {/* Rutas públicas para Login y Registro */}
           <Route path="/login" element={<Login />} />

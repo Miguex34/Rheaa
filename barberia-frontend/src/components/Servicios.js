@@ -160,7 +160,7 @@ const Servicios = () => {
         id_negocio: form.id_negocio,
       });
       setEditingId(null); // Restablece el modo de edición
-      toast.success('¡Servicio creado correctamente!',{
+      toast.success('¡Servicio guardado correctamente!',{
         icon: FcPlus ,
       });
 

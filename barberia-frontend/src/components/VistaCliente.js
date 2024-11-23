@@ -3,10 +3,11 @@ import { useParams, useNavigate  } from 'react-router-dom';
 import axios from 'axios';
 import fondo1 from '../assets/images/fondo1.png';
 import LoginForm from './LoginCliente';
+import AccountModal from './CuentaClient';
 import RegistroCliente from './RegistroCliente';
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
-
 const VistaCliente = () => {
   const { nombre } = useParams(); // Obtener el nombre del negocio desde la URL
   const navigate = useNavigate(); // Hook para la navegación
@@ -19,6 +20,12 @@ const VistaCliente = () => {
   const [modalLoginOpen, setModalLoginOpen] = useState(false);
   const [modalRegisterOpen, setModalRegisterOpen] = useState(false);
   const [auth, setAuth] = useState(!!localStorage.getItem('token'));
+  const [modalOpen, setModalOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [history, setHistory] = useState([]);
+  const openModal = () => setModalOpen(true);
+
+  
 
   useEffect(() => {
     // Función para obtener información del negocio, servicios y horarios
@@ -76,28 +83,65 @@ const VistaCliente = () => {
     window.location.reload();
   };
 
-  const handleLogin = async (email, password) => {
-    try {
-      const response = await axios.post('http://localhost:5000/api/clientes/loginc', {
-        correo: email,
-        contraseña: password,
-      });
   
-      if (response.status === 200) {
-        // Guardar el token en localStorage y actualizar el estado de autenticación
-        localStorage.setItem('token', response.data.token);
-        setAuth(true); // Esto actualizará el estado para forzar el re-renderizado del componente
-        handleCloseLoginModal(); // Cerrar el modal de login
-      }
-    } catch (error) {
-      console.error('Error al iniciar sesión:', error);
-      alert('Error al iniciar sesión: ' + (error.response?.data?.message || 'Revise sus credenciales e intente nuevamente.'));
-    }
-  };
+
   useEffect(() => {
     setAuth(!!localStorage.getItem('token'));
   }, []);
   
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setAuth(!!localStorage.getItem('token')); // Sincroniza el estado de autenticación con localStorage
+    };
+  
+    window.addEventListener('storage', handleStorageChange);
+    toast.success('¡Sesión iniciada correctamente!');
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange); // Limpia el evento al desmontar
+    };
+  }, []);
+
+  useEffect(() => {
+    const fetchUserDataAndHistory = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+  
+      try {
+        // Obtener datos del cliente
+        const userResponse = await axios.get('http://localhost:5000/api/clientes/me', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUser(userResponse.data);
+  
+        // Obtener historial de reservas
+        
+      } catch (error) {
+        console.error('Error al obtener datos del cliente o historial:', error);
+      }
+    };
+  
+    fetchUserDataAndHistory();
+  }, []);
+
+  const fetchUser = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+  
+    try {
+      const response = await axios.get('http://localhost:5000/api/clientes/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(response.data); // Actualiza el estado del usuario
+    } catch (error) {
+      console.error('Error al obtener datos del cliente:', error);
+      toast.error('No se pudieron cargar los datos del usuario.');
+    }
+  };
+
+  useEffect(() => {
+    fetchUser(); // Llamar al fetchUser para cargar los datos del cliente
+  }, []);
 
   
   const seleccionarServicio = (servicio) => {
@@ -117,6 +161,7 @@ const VistaCliente = () => {
   if (error) {
     return <div className="flex justify-center items-center h-screen text-red-500">{error}</div>;
   }
+  
 
   return (
     <div className="container mx-auto p-6">
@@ -126,8 +171,9 @@ const VistaCliente = () => {
         <div>
     {auth ? (
       <>
+            <ToastContainer position="top-center" autoClose={5000} />
         <button
-          onClick={() => navigate('/cuenta')}
+          onClick={openModal}
           className="bg-gray-500 px-4 py-2 rounded-md hover:bg-gray-600 transition duration-300 mr-2"
         >
           Cuenta
@@ -247,12 +293,25 @@ const VistaCliente = () => {
         </div>
       </div>
 
+      {modalOpen && (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <AccountModal 
+          isOpen={modalOpen} 
+          closeModal={() => setModalOpen(false)} 
+          user={user} 
+          history={history}
+          fetchUser={fetchUser}
+        />
+      </div>
+    )}
+
 
       {/* Modal para Login */}
       {modalLoginOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-md shadow-lg max-w-md w-full">
-          <LoginForm closeModal={handleCloseLoginModal} onLogin={handleLogin} />        </div>
+          <LoginForm closeModal={handleCloseLoginModal} setAuth={setAuth} />
+        </div>
         </div>
       )}
 
