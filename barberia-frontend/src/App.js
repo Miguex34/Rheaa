@@ -28,6 +28,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import 'react-toastify/dist/ReactToastify.css';
 import CuentaClient from './components/CuentaClient';
 // Función PrivateRoute para proteger rutas privadas
+import Principal from './components/Principal';
 
 const AppContent = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
@@ -141,7 +142,8 @@ const AppContent = () => {
           <Route path="/resumen" element={<Resumen />} />
           <Route path="/negocio/:nombre" element={<VistaCliente />} />
           <Route path="/cuenta-cliente" element={<CuentaClient />} />
-
+          <Route path="/principal" element={<Principal />} />
+          
           {/* Rutas públicas para Login y Registro */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -187,7 +189,7 @@ const AppContent = () => {
         />
 
           {/* Redireccionar rutas no encontradas */}
-          <Route path="*" element={<Navigate to={isAuthenticated ? "/configuracion" : "/login"} replace />} />
+          <Route path="*" element={<Navigate to={isAuthenticated ? "/principal" : "/login"} replace />} />
         </Routes>
       </div>
     </div>

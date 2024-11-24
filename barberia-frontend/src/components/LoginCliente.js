@@ -12,6 +12,29 @@ const LoginForm = ({ closeModal, setAuth }) => {
     setFormData({ ...formData, [name]: value });
   };
 
+  const fetchUser = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('No se encontró el token en localStorage.');
+      return;
+    }
+    try {
+      const response = await axios.get('http://localhost:5000/api/clientes/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data) {
+        // Guarda los datos del cliente en localStorage
+        localStorage.setItem('user', JSON.stringify(response.data));
+        toast.success('¡Datos del usuario cargados correctamente!');
+      } else {
+        console.warn('La respuesta no contiene datos del cliente.');
+      }
+    } catch (error) {
+      console.error('Error al obtener datos del cliente:', error);
+      toast.error('No se pudieron cargar los datos del usuario.');
+    }
+  };
+
   
 
   const handleLogin = async (e) => {
@@ -19,23 +42,31 @@ const LoginForm = ({ closeModal, setAuth }) => {
     try {
       const response = await axios.post('http://localhost:5000/api/clientes/loginc', formData);
       
-      // Guarda el token en localStorage
-      localStorage.setItem('token', response.data.token);
-  
-      // Muestra el mensaje del backend
-      
-      // Actualiza el estado de autenticación a verdadero
-      setAuth(true);
-      toast.success('¡Sesión iniciada correctamente!');
+      // Guardar el token
+      const token = response.data.token;
+      localStorage.setItem('token', token);
 
-      // Cierra el modal después del login exitoso
+      // Obtener datos del cliente inmediatamente
+      const userResponse = await axios.get('http://localhost:5000/api/clientes/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // Guardar los datos del cliente en localStorage
+      const user = userResponse.data;
+      localStorage.setItem('user', JSON.stringify(user));
+      await fetchUser();
+
+      // Actualizar el estado de autenticación
+      setAuth(true);
+
+      // Cerrar el modal
       closeModal();
-  
-      // Limpia los errores si hubo alguno antes
-      setError('');
+
+      toast.success('¡Inicio de sesión exitoso!');
     } catch (error) {
-      setError('Credenciales inválidas');
-      console.error('Error al iniciar sesión:', error);
+      console.error('Error al iniciar sesión:', error.response || error);
+      setError('Credenciales inválidas.');
+      toast.error('Error al iniciar sesión. Verifica tus credenciales.');
     }
   };
   

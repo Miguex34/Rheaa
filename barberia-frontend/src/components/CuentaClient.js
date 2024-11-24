@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import '../styles/styles.css';
 
 const CuentaCliente = ({ isOpen, closeModal, user, fetchUser }) => {
   const [activeTab, setActiveTab] = useState('personal');
   const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(true); 
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     email_cliente: '',
     celular_cliente: '',
@@ -20,6 +23,7 @@ const CuentaCliente = ({ isOpen, closeModal, user, fetchUser }) => {
   // Guardar los cambios en el backend
   const handleSave = async () => {
     try {
+        setLoading(true);
       const token = localStorage.getItem('token');
       await axios.put(
         'http://localhost:5000/api/clientes/me',
@@ -34,7 +38,9 @@ const CuentaCliente = ({ isOpen, closeModal, user, fetchUser }) => {
     } catch (error) {
       console.error('Error al actualizar los datos:', error);
       toast.error('Error al actualizar los datos');
-    }
+    }finally {
+        setLoading(false); // Desactivar estado de carga
+      }
   };
 
   // Cargar datos iniciales del usuario al abrir el modal
@@ -44,31 +50,76 @@ const CuentaCliente = ({ isOpen, closeModal, user, fetchUser }) => {
         email_cliente: user.email_cliente || '',
         celular_cliente: user.celular_cliente || '',
       });
+      setLoading(false); // Only stop loading when user data is available
     }
   }, [user]);
 
   // Obtener el historial de reservas
   useEffect(() => {
     const fetchHistorialReservas = async () => {
+      if (!user?.id) {
+        console.warn('El usuario no está definido o no tiene un ID.');
+        return;
+      }
+  
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No se encontró el token.');
+        return;
+      }
+  
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`http://localhost:5000/api/clientes/historial/${user.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axios.get(
+          `http://localhost:5000/api/clientes/historial/${user.id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+  
         setHistorial(response.data);
       } catch (error) {
-        console.error('Error al obtener el historial de reservas:', error);
-        toast.error('No se pudo cargar el historial de reservas');
+        console.error('Error al obtener el historial:', error);
+        toast.error('No se pudo cargar el historial de reservas.');
+      } finally {
+        setLoading(false); // Finaliza el estado de carga
       }
     };
-
-    if (isOpen && user?.id) {
+  
+    if (isOpen) {
+      setLoading(true);
       fetchHistorialReservas();
     }
   }, [isOpen, user]);
+  
 
   // Asegurar que el modal esté abierto
   if (!isOpen) return null;
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div className="bg-white p-6 rounded-md shadow-lg">
+          <div className="three-body">
+            <div className="three-body__dot"></div>
+            <div className="three-body__dot"></div>
+            <div className="three-body__dot"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar mensaje de error si ocurrió un problema
+  if (error) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div className="bg-white p-6 rounded-md shadow-lg">
+          <p>{error}</p>
+          <button onClick={closeModal} className="bg-red-500 text-white px-4 py-2 rounded">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">

@@ -23,9 +23,8 @@ const VistaCliente = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [history, setHistory] = useState([]);
-  const openModal = () => setModalOpen(true);
-
-  
+  const [negocios, setNegocios] = useState([]);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     // Función para obtener información del negocio, servicios y horarios
@@ -55,13 +54,13 @@ const VistaCliente = () => {
 
         setLoading(false);
       } catch (error) {
-        setError('No se pudo obtener la información del negocio, los servicios o los horarios.');
+        setError('Negocio en creacion');
         setLoading(false);
       }
     };
-
     fetchData();
   }, [nombre]);
+  
   const handleOpenLoginModal = () => {
     setModalLoginOpen(true);
   };
@@ -82,66 +81,95 @@ const VistaCliente = () => {
     setAuth(false);
     window.location.reload();
   };
-
   
 
-  useEffect(() => {
-    setAuth(!!localStorage.getItem('token'));
-  }, []);
   
   useEffect(() => {
-    const handleStorageChange = () => {
-      setAuth(!!localStorage.getItem('token')); // Sincroniza el estado de autenticación con localStorage
-    };
-  
-    window.addEventListener('storage', handleStorageChange);
-    toast.success('¡Sesión iniciada correctamente!');
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange); // Limpia el evento al desmontar
-    };
-  }, []);
-
-  useEffect(() => {
-    const fetchUserDataAndHistory = async () => {
+    const syncAuthAndFetchUser = async () => {
       const token = localStorage.getItem('token');
-      if (!token) return;
+      const userFromStorage = localStorage.getItem('user');
+    
+      // Cargar usuario desde localStorage si ya existe
+      if (userFromStorage) {
+        try {
+          setUser(JSON.parse(userFromStorage)); // Actualizar estado con datos almacenados
+          console.log('Usuario cargado desde localStorage:', userFromStorage);
+        } catch (error) {
+          console.error('Error al cargar el usuario desde localStorage:', error);
+        }
+      }
+    
+      if (token) {
+        setAuth(true); // Usuario autenticado
+        try {
+          // Solo realiza la solicitud al servidor si el usuario no está en localStorage
+          const response = await axios.get('http://localhost:5000/api/clientes/me', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
   
-      try {
-        // Obtener datos del cliente
-        const userResponse = await axios.get('http://localhost:5000/api/clientes/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUser(userResponse.data);
-  
-        // Obtener historial de reservas
-        
-      } catch (error) {
-        console.error('Error al obtener datos del cliente o historial:', error);
+          if (response.data) {
+            console.log('Datos del usuario obtenidos del servidor:', response.data);
+            setUser(response.data); // Actualiza el estado del usuario
+            localStorage.setItem('user', JSON.stringify(response.data)); // Sincronizar localStorage
+          } else {
+            console.warn('La respuesta no contiene datos del usuario.');
+          }
+        } catch (error) {
+          console.error('Error al obtener datos del cliente desde el servidor:', error);
+          toast.error('No se pudieron cargar los datos del usuario desde el servidor.');
+          setAuth(false); // Desactivar autenticación en caso de error
+        }
+      } else {
+        console.warn('No se encontró el token en localStorage. Cerrando sesión.');
+        setAuth(false); // Usuario no autenticado
       }
     };
   
-    fetchUserDataAndHistory();
-  }, []);
-
-  const fetchUser = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
+    syncAuthAndFetchUser();
   
-    try {
-      const response = await axios.get('http://localhost:5000/api/clientes/me', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUser(response.data); // Actualiza el estado del usuario
-    } catch (error) {
-      console.error('Error al obtener datos del cliente:', error);
-      toast.error('No se pudieron cargar los datos del usuario.');
-    }
-  };
+    const handleStorageChange = (event) => {
+      if (event.key === 'user' || event.key === 'token') {
+        syncAuthAndFetchUser(); // Re-sincronizar si algo cambia en localStorage
+      }
+    };
+  
+    // Escuchar cambios en localStorage
+    window.addEventListener('storage', handleStorageChange);
+  
+    return () => {
+      window.removeEventListener('storage', handleStorageChange); // Limpiar listener al desmontar
+    };
+  }, []);
+  
 
   useEffect(() => {
-    fetchUser(); // Llamar al fetchUser para cargar los datos del cliente
+    const fetchNegocios = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/negocios/completos');
+        const negociosFiltrados = response.data.filter(negocio => 
+          negocio.nombre && negocio.telefono && negocio.direccion && negocio.categoria
+        );
+        setNegocios(negociosFiltrados);
+      } catch (error) {
+        console.error('Error al obtener negocios:', error);
+        toast.error('No se pudieron cargar los negocios.');
+      }
+    };
+
+    fetchNegocios();
   }, []);
+
+  const handleNegocioClick = (nombre) => {
+    navigate(`/negocio/${nombre}`);
+  };
+  
+  const openModal = () => {
+    if (user) {
+      setModalOpen(true);
+    } else {
+      toast.error('Los datos del usuario no están cargados.');
+    }
+  };
 
   
   const seleccionarServicio = (servicio) => {
@@ -149,6 +177,13 @@ const VistaCliente = () => {
     sessionStorage.setItem('servicioSeleccionadoNombre', servicio.nombre);
     navigate('/pregunta-preferencia'); // Navegar a PreguntaPreferencia.js
   };
+
+  useEffect(() => {
+    console.log('Token en localStorage:', localStorage.getItem('token'));
+    console.log('Usuario en localStorage:', localStorage.getItem('user'));
+    console.log('Estado de auth:', auth);
+    console.log('Estado de user:', user);
+  }, [auth, user]);
 
   const serviciosFiltrados = filtroCategoria
     ? servicios.filter(servicio => servicio.categoria === filtroCategoria)
@@ -166,46 +201,82 @@ const VistaCliente = () => {
   return (
     <div className="container mx-auto p-6">
       {/* Navbar */}
-      <div className="flex justify-between items-center bg-gray-800 text-white px-6 py-4">
+      <nav className="flex justify-between items-center bg-gray-800 text-white px-6 py-4">
         <h1 className="text-xl font-bold">Vista Cliente</h1>
-        <div>
-    {auth ? (
-      <>
-            <ToastContainer position="top-center" autoClose={5000} />
-        <button
-          onClick={openModal}
-          className="bg-gray-500 px-4 py-2 rounded-md hover:bg-gray-600 transition duration-300 mr-2"
-        >
-          Cuenta
-        </button>
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 px-4 py-2 rounded-md hover:bg-red-600 transition duration-300"
-        >
-          Cerrar Sesión
-        </button>
-      </>
-    ) : (
-      <>
-        <button
-          onClick={handleOpenLoginModal}
-          className="bg-blue-500 px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300 mr-2"
-        >
-          Login
-        </button>
-        <button
-          onClick={handleOpenRegisterModal}
-          className="bg-green-500 px-4 py-2 rounded-md hover:bg-green-600 transition duration-300"
-        >
-          Register
-        </button>
-      </>
-    )}
-  </div>
-      </div>
+  
+        {/* Menú de Negocios */}
+        <div className="relative">
+          <button
+            className="bg-gray-500 px-4 py-2 rounded-md hover:bg-gray-600 transition duration-300"
+            onClick={() => setMenuOpen(!menuOpen)} // Alternar el estado del menú
+          >
+            Negocios
+          </button>
+          {menuOpen && (
+            <div
+              className="absolute bg-white text-black rounded-md shadow-lg mt-2 w-64 z-50"
+              onClick={(e) => e.stopPropagation()} // Prevenir cierre al hacer clic dentro del menú
+            >
+              <ul className="divide-y divide-gray-200">
+                {negocios.length > 0 ? (
+                  negocios.map((negocio) => (
+                    <li
+                      key={negocio.id}
+                      onClick={() => handleNegocioClick(negocio.nombre)}
+                      className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
+                    >
+                      {negocio.nombre}
+                    </li>
+                  ))
+                ) : (
+                  <li className="px-4 py-2 text-gray-500">No hay negocios disponibles</li>
+                )}
+              </ul>
+            </div>
+          )}
+        </div>
+  
+        {/* Botones de Autenticación */}
+        <div className="flex items-center space-x-4">
+          {auth ? (
+            <>
+              <ToastContainer position="top-center" autoClose={5000} />
+              <button
+                onClick={openModal}
+                className="bg-gray-500 px-4 py-2 rounded-md hover:bg-gray-600 transition duration-300"
+              >
+                Cuenta
+              </button>
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 px-4 py-2 rounded-md hover:bg-red-600 transition duration-300"
+              >
+                Cerrar Sesión
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={handleOpenLoginModal}
+                className="bg-blue-500 px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300"
+              >
+                Login
+              </button>
+              <button
+                onClick={handleOpenRegisterModal}
+                className="bg-green-500 px-4 py-2 rounded-md hover:bg-green-600 transition duration-300"
+              >
+                Register
+              </button>
+            </>
+          )}
+        </div>
+      </nav>
+  
       <div className="mb-6">
         <img src={fondo1} alt="Banner" className="w-full object-cover h-64 rounded-lg shadow-md" />
       </div>
+  
       {/* Selección de Categoría */}
       <div className="mb-4">
         <label className="text-gray-700 font-semibold mr-2">Filtrar por categoría:</label>
@@ -222,7 +293,7 @@ const VistaCliente = () => {
           ))}
         </select>
       </div>
-
+  
       {/* Parte principal de la vista */}
       <div className="flex gap-6">
         <div className="flex-grow bg-white shadow-md rounded-md p-6">
@@ -235,13 +306,16 @@ const VistaCliente = () => {
             />
             <h2 className="text-3xl font-bold text-gray-800">{negocio.nombre}</h2>
           </div>
-
+  
           {/* Servicios del negocio */}
           <div className="mt-6">
             <h3 className="text-2xl font-semibold mb-4 text-gray-800">Servicios</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {serviciosFiltrados.map((servicio) => (
-                <div key={servicio.id} className="bg-[#3b3b3b] text-white p-6 rounded-md shadow-lg transform hover:scale-105 transition-transform duration-300">
+                <div
+                  key={servicio.id}
+                  className="bg-[#3b3b3b] text-white p-6 rounded-md shadow-lg transform hover:scale-105 transition-transform duration-300"
+                >
                   <h4 className="text-xl font-bold mb-2">{servicio.nombre}</h4>
                   <p className="mb-2"><strong>Duración:</strong> {servicio.duracion} minutos</p>
                   <p className="mb-2"><strong>Precio:</strong> ${servicio.precio}</p>
@@ -257,7 +331,7 @@ const VistaCliente = () => {
             </div>
           </div>
         </div>
-
+  
         {/* Información detallada del negocio */}
         <div className="w-96 bg-white shadow-md rounded-md p-6">
           <h3 className="text-2xl font-bold mb-4 text-gray-800">Información del Negocio</h3>
@@ -266,14 +340,14 @@ const VistaCliente = () => {
           <p className="mb-2"><strong>Correo:</strong> {negocio.correo}</p>
           <p className="mb-4"><strong>Descripción:</strong> {negocio.descripcion}</p>
           <p className="mb-4"><strong>Categoría:</strong> {negocio.categoria}</p>
-
+  
           {/* Horario del negocio */}
           <div className="mt-6">
             <h3 className="text-xl font-semibold mb-4 text-gray-800">Horario</h3>
             {horarios.length > 0 ? (
               <ul className="space-y-2">
                 {diasSemana.map((dia) => {
-                  const horario = horarios.find(h => h.dia_semana === dia);
+                  const horario = horarios.find((h) => h.dia_semana === dia);
                   return (
                     <li key={dia} className="flex justify-between text-gray-700">
                       <span>{dia}</span>
@@ -292,41 +366,38 @@ const VistaCliente = () => {
           </div>
         </div>
       </div>
-
+  
       {modalOpen && (
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-        <AccountModal 
-          isOpen={modalOpen} 
-          closeModal={() => setModalOpen(false)} 
-          user={user} 
-          history={history}
-          fetchUser={fetchUser}
-        />
-      </div>
-    )}
-
-
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <AccountModal
+            isOpen={modalOpen}
+            closeModal={() => setModalOpen(false)}
+            user={user}
+            history={history}
+          />
+        </div>
+      )}
+  
       {/* Modal para Login */}
       {modalLoginOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-md shadow-lg max-w-md w-full">
-          <LoginForm closeModal={handleCloseLoginModal} setAuth={setAuth} />
-        </div>
+            <LoginForm closeModal={handleCloseLoginModal} setAuth={setAuth} />
+          </div>
         </div>
       )}
-
+  
       {/* Modal para Registro */}
       {modalRegisterOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-md shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
-          <RegistroCliente closeModal={handleCloseRegisterModal} setAuth={setAuth} />
+            <RegistroCliente closeModal={handleCloseRegisterModal} setAuth={setAuth} />
           </div>
         </div>
       )}
     </div>
   );
-};
-
+}
 export default VistaCliente;
 
 
