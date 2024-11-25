@@ -14,7 +14,7 @@ moment.locale('es'); // Configurar moment para usar el español
 const normalizeString = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 const { Op } = require('sequelize');
 const jwt = require('jsonwebtoken');
-const sendEmail = require('../utils/sendEmail');
+const { sendEmailWithTemplateData }  = require('../utils/sendEmail');
 
 
 // Funcion para obtener la disponibilidad de TODOS los empleados.
@@ -488,11 +488,11 @@ exports.crearReserva = async (req, res) => {
         }
 
         const id_usuario = empleadoNegocio.id_usuario; // Extraer el id_usuario
-        const nombre_profesional = empleadoNegocio.usuario?.nombre_usuario || 'Profesional no especificado';
+        const nombre_profesional = empleadoNegocio.Usuario?.nombre_usuario || 'Profesional no especificado';
         
         // Buscar información del negocio
         const negocio = await Negocio.findByPk(negocioId, {
-            attributes: ['nombre_negocio'],
+            attributes: ['nombre'],
         });
 
         if (!negocio) {
@@ -503,7 +503,7 @@ exports.crearReserva = async (req, res) => {
 
         // Buscar información del servicio
         const servicio = await Servicio.findByPk(servicioId, {
-            attributes: ['nombre_servicio'],
+            attributes: ['nombre'],
         });
 
         if (!servicio) {
@@ -543,26 +543,21 @@ exports.crearReserva = async (req, res) => {
                     numero_reserva: nuevaReserva.id,
                     negocio: negocio.nombre, 
                     servicio: servicio.nombre, 
-                    profesional, 
+                    profesional: nombre_profesional, 
                     fecha,
                     hora_inicio,
                     hora_fin,
                 });
 
-                await sendEmail({
-                    to: cliente.email_cliente, // Correo del cliente
-                    subject: 'Confirmación de Reserva', // Asunto del correo
-                    templateId: 'd-d6cf6663ca1441468c43fc510b22cb33', // ID de tu plantilla
-                    dynamicData: {
-                        nombre_usuario: cliente.nombre,
-                        numero_reserva: nuevaReserva.id, // ID de la reserva
-                        negocio: negocio.nombre,
-                        servicio: servicio.nombre,
-                        profesional,
-                        fecha,
-                        hora_inicio,
-                        hora_fin,
-                    },
+                await sendEmailWithTemplateData(cliente.email_cliente, 'd-d6cf6663ca1441468c43fc510b22cb33', {
+                    nombre_usuario: cliente.nombre,
+                    numero_reserva: nuevaReserva.id,
+                    negocio: negocio.nombre, // Nombre del negocio
+                    servicio: servicio.nombre, // Nombre del servicio
+                    profesional: nombre_profesional, // Nombre del profesional
+                    fecha, // Fecha de la reserva
+                    hora_inicio, // Hora de inicio
+                    hora_fin, // Hora de fin
                 });
             } catch (error) {
                 console.error('Error al enviar el correo:', error.message);
