@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaSignOutAlt } from 'react-icons/fa';
-import { FcMenu, FcPlanner, FcBusinessman, FcPlus, FcManager, FcCalendar, FcAutomatic, FcCustomerSupport,FcInspection  } from 'react-icons/fc';
+import { FcMenu, FcPlanner, FcBusinessman, FcPlus, FcManager, FcCalendar, FcAutomatic, FcCustomerSupport,FcInspection,FcPositiveDynamic    } from 'react-icons/fc';
 import logo from '../assets/images/logo.png';
 
 const Sidebar = () => {
@@ -116,6 +116,18 @@ const Sidebar = () => {
                 {isMenuOpen && <span>Calendario</span>}
               </Link>
             </li>
+            {/* Mostrar la opción "Dashboard" solo para 'Dueño' */}
+        {role === 'Dueño' && (
+          <li>
+            <Link
+              to="/Dashboard"
+              className={`flex items-center space-x-3 p-2 px-4 rounded transition-colors duration-200 ${isActive('/Dashboard') ? 'bg-purple-500' : 'hover:bg-gray-700'}`}
+            >
+              <FcPositiveDynamic   />
+              {isMenuOpen && <span>Reportes</span>}
+            </Link>
+          </li>
+        )}
             <li>
               <Link
                 to="/configuracion"

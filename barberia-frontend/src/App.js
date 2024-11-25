@@ -29,7 +29,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import CuentaClient from './components/CuentaClient';
 // Función PrivateRoute para proteger rutas privadas
 import Principal from './components/Principal';
-
+import Dashboard from './components/Dashboard';
 const AppContent = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
   const [userCargo, setUserCargo] = useState(localStorage.getItem('cargo') || '');
@@ -116,7 +116,8 @@ const AppContent = () => {
     '/calendario',
     '/configuracion',
     '/soporte',
-    '/TicketsSoporte'
+    '/TicketsSoporte',
+    '/Dashboard'
   ];
 
   // Determinar si el Sidebar debe mostrarse
@@ -163,6 +164,7 @@ const AppContent = () => {
               <Route path="/calendario" element={<ProtectedRoute allowedRoles={['Dueño', 'Empleado']}><Calendario /></ProtectedRoute>} />
               <Route path="/configuracion" element={<ProtectedRoute allowedRoles={['Dueño', 'Empleado']}><Configuracion /></ProtectedRoute>} />
               <Route path="/soporte" element={<ProtectedRoute allowedRoles={['Dueño', 'Empleado']}><Soporte /></ProtectedRoute>} />
+              <Route path="/Dashboard" element={<ProtectedRoute allowedRoles={['Dueño', 'Empleado']}><Dashboard /></ProtectedRoute>} />
             </>
           )}
           {/* Ruta para ver los servicios asignados al empleado */}

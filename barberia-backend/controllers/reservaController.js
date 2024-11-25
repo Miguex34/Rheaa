@@ -1,5 +1,9 @@
 const Reserva = require('../models/Reserva');
 const DisponibilidadEmpleado = require('../models/DisponibilidadEmpleado');
+const db = require('../config/database');
+const { Sequelize } = require('sequelize');
+const EmpleadoNegocio = require('../models/EmpleadoNegocio');
+const Usuario = require('../models/Usuario');
 
 exports.createReserva = async (req, res) => {
   try {
@@ -66,4 +70,53 @@ exports.getDisponibilidad = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener la disponibilidad.' });
   }
 };
+
+exports.obtenerReservacionesPorEmpleado = async (req, res) => {
+  const { id_negocio } = req.user; // Obtener el id_negocio del middleware
+
+  if (!id_negocio) {
+      return res.status(400).json({ message: 'No se encontró un negocio asociado al usuario.' });
+  }
+
+  try {
+      const empleadosReservas = await Reserva.findAll({
+          where: {
+              id_negocio,
+          },
+          attributes: [
+              [Sequelize.col('Reserva.id_empleado'), 'id_empleado'],
+              [Sequelize.fn('COUNT', Sequelize.col('Reserva.id')), 'total_reservaciones'],
+          ],
+          include: [
+              {
+                  model: EmpleadoNegocio,
+                  as: 'empleadoNegocio',
+                  attributes: ['id', 'id_usuario'],
+                  include: {
+                      model: Usuario,
+                      as: 'Usuario',
+                      attributes: ['nombre'],
+                  },
+              },
+          ],
+          group: ['Reserva.id_empleado', 'empleadoNegocio.id', 'empleadoNegocio.Usuario.id'],
+          order: [[Sequelize.fn('COUNT', Sequelize.col('Reserva.id')), 'DESC']],
+      });
+
+      if (!empleadosReservas || empleadosReservas.length === 0) {
+          return res.status(404).json({ message: 'No se encontraron reservaciones para este negocio.' });
+      }
+
+      const resultado = empleadosReservas.map((reserva) => ({
+          empleado: reserva.empleadoNegocio.Usuario.nombre,
+          total_reservaciones: reserva.dataValues.total_reservaciones,
+      }));
+
+      res.json(resultado);
+  } catch (error) {
+      console.error('Error al obtener reservaciones por empleado:', error);
+      res.status(500).json({ error: 'Error al obtener reservaciones por empleado.' });
+  }
+};
+
 
