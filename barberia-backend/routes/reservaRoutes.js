@@ -5,6 +5,9 @@ const authMiddleware = require('../middleware/authMiddleware');
 
 // Ruta para crear una reserva (disponible para cualquier usuario)
 router.get('/empleados', authMiddleware , reservaController.obtenerReservacionesPorEmpleado);
+router.get('/reservas-por-mes', authMiddleware, reservaController.obtenerReservasPorMes);
+router.get('/reservas-por-fecha', authMiddleware, reservaController.obtenerReservasPorFecha);
+
 
 router.post('/reservas', reservaController.createReserva);
 
