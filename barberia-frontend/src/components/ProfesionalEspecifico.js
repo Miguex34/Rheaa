@@ -97,7 +97,7 @@ const ProfesionalEspecifico = ({ negocioId, servicioId }) => {
                 JSON.stringify({ id: servicioId, nombre: servicioNombre })
             );
 
-            navigate('/resumen');
+            navigate('/paso-registro-reserva');
         } else {
             alert('Por favor, selecciona un empleado y un bloque de horario antes de continuar.');
         }

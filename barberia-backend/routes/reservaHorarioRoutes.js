@@ -18,7 +18,7 @@ router.get('/disponibilidad/general/:negocioId/:servicioId', reservaHorarioContr
 // Nueva Ruta para obtener disponibilidad de un empleado específico
 router.get('/disponibilidad/empleado/:negocioId/:servicioId/:empleadoId', reservaHorarioController.obtenerDisponibilidadEmpleado);
 
-// Ruta para reservar un bloque de horario
-router.post('/reservar', reservaHorarioController.reservarBloqueHorario);
+// Ruta para crear una nueva reserva
+router.post('/crear', reservaHorarioController.crearReserva);
 
 module.exports = router;

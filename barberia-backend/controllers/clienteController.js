@@ -80,7 +80,67 @@ const crearCuentaCliente = async (req, res) => {
     }
   };
   
+  const verificarCorreo = async (req, res) => {
+    const { email } = req.query; // Recibe el correo por query params
+
+    try {
+        // Verificar si el correo ya está registrado
+        const cliente = await Cliente.findOne({ where: { email_cliente: email } });
+
+        if (cliente) {
+            return res.status(200).json({
+                registrado: true,
+                message: 'El correo ya está registrado. Por favor, inicia sesión.',
+            });
+        }
+
+        return res.status(200).json({
+            registrado: false,
+            message: 'El correo está disponible.',
+        });
+    } catch (error) {
+        console.error('Error al verificar el correo:', error);
+        res.status(500).json({ error: 'Error interno al verificar el correo.' });
+    }
+  };
+  
+  const crearOActualizarCliente = async (req, res) => {
+    const { nombre, email, telefono, is_guest } = req.body;
+
+    try {
+        // Verificar si ya existe un cliente con el mismo correo
+        let cliente = await Cliente.findOne({ where: { email_cliente: email } });
+
+        if (cliente) {
+            return res.status(200).json({
+                message: 'El cliente ya existe.',
+                clienteId: cliente.id, // Retorna el ID del cliente existente
+            });
+        }
+
+        // Si no existe, crear un cliente nuevo
+        cliente = await Cliente.create({
+            nombre,
+            email_cliente: email,
+            celular_cliente: telefono || null, // Teléfono es opcional
+            is_guest: is_guest || true, // Por defecto, es un cliente invitado
+            password_cliente: null, // Los clientes invitados no tienen contraseña
+            token_recuperacion_cliente: null, // No aplicable para invitados
+        });
+
+        return res.status(201).json({
+            message: 'Cliente invitado creado exitosamente.',
+            clienteId: cliente.id, // Retorna el ID del cliente recién creado
+        });
+    } catch (error) {
+        console.error('Error al crear o actualizar cliente:', error);
+        res.status(500).json({ error: 'Error interno al manejar el cliente.' });
+    }
+  };
+
   module.exports = {
     crearCuentaCliente,
     loginCliente,
+    verificarCorreo,
+    crearOActualizarCliente,
   };

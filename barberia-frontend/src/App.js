@@ -22,6 +22,9 @@ import ProfesionalEspecifico from './components/ProfesionalEspecifico';
 import Resumen from './components/Resumen';
 import RegistroCliente from './components/RegistroCliente';
 import TicketsSoporte from './components/TicketsSoporte';
+import PasoRegistroReserva from './components/PasoRegistroReserva';
+import MetodoPago from './components/MetodoPago';
+import ConfirmacionReserva from './components/ConfirmacionReserva';
 
 // Función PrivateRoute para proteger rutas privadas
 const PrivateRoute = ({ children }) => {
@@ -60,6 +63,10 @@ const AppContent = () => {
           <Route path="/primera-hora-disponible/:servicioId" element={<PrimeraHoraDisponible />} />
           <Route path="/profesional-especifico/:servicioId" element={<ProfesionalEspecifico />} /> 
           <Route path="/resumen" element={<Resumen />} />
+          <Route path="/paso-registro-reserva" element={<PasoRegistroReserva />} />
+          <Route path="/metodo-pago" element={<MetodoPago />} />
+          <Route path="/confirmacion" element={<ConfirmacionReserva />} />
+
 
           {/* Rutas públicas para Login y Registro */}
           <Route path="/login" element={<Login />} />

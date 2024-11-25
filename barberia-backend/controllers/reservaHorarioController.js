@@ -7,11 +7,15 @@ const Servicio = require('../models/Servicio');
 const EmpleadoNegocio = require('../models/EmpleadoNegocio');
 const EmpleadoServicio = require('../models/EmpleadoServicio');
 const Usuario = require('../models/Usuario');
+const Cliente = require('../models/Cliente');
 const moment = require('moment');
 require('moment/locale/es'); // Cargar configuración en español para moment
 moment.locale('es'); // Configurar moment para usar el español
 const normalizeString = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 const { Op } = require('sequelize');
+const jwt = require('jsonwebtoken');
+const sendEmail = require('../utils/sendEmail');
+
 
 // Funcion para obtener la disponibilidad de TODOS los empleados.
 exports.obtenerDisponibilidadGeneral = async (req, res) => {
@@ -404,65 +408,6 @@ exports.obtenerBloquesDisponibles = async (req, res) => {
     }
 };
 
-// Función para reservar un bloque de horario disponible
-exports.reservarBloqueHorario = async (req, res) => {
-    const { negocioId, servicioId, empleadoId, fecha, hora_inicio, hora_fin, clienteId, comentario_cliente } = req.body;
-
-    try {
-        // Verificación de solapamiento
-        const reservaExistente = await Reserva.findOne({
-            where: {
-                id_negocio: negocioId,
-                id_servicio: servicioId,
-                id_empleado: empleadoId,
-                fecha, // Comparación directa de fecha ahora que es DATE
-                hora_inicio: { [Op.lt]: hora_fin },   // inicio de la reserva existente es antes del fin del nuevo bloque
-                hora_fin: { [Op.gt]: hora_inicio }    // fin de la reserva existente es después del inicio del nuevo bloque
-            }
-        });
-
-        if (reservaExistente) {
-            return res.status(400).json({ message: 'El bloque de horario ya ha sido reservado.' });
-        }
-
-        // Confirmación de que el servicio y el empleado están activos
-        const servicio = await Servicio.findByPk(servicioId);
-        if (!servicio || !servicio.disponible) {
-            return res.status(400).json({ message: 'El servicio no está disponible.' });
-        }
-
-        const empleadoNegocio = await EmpleadoNegocio.findOne({
-            where: { id_usuario: empleadoId, id_negocio: negocioId }
-        });
-        if (!empleadoNegocio) {
-            return res.status(400).json({ message: 'El empleado no pertenece a este negocio.' });
-        }
-
-        // Crear la reserva si el bloque está libre
-        const nuevaReserva = await Reserva.create({
-            id_usuario: clienteId,
-            id_servicio: servicioId,
-            id_cliente: clienteId,
-            id_negocio: negocioId,
-            id_empleado: empleadoId,
-            fecha,
-            hora_inicio,
-            hora_fin,
-            estado: 'reservado',
-            comentario_cliente,
-            fecha_creacion: new Date()
-        });
-
-        res.status(201).json({
-            message: 'Reserva confirmada.',
-            reserva: nuevaReserva
-        });
-    } catch (error) {
-        console.error("Error al reservar bloque de horario:", error);
-        res.status(500).json({ error: error.message });
-    }
-};
-
 // Función para obtener los empleados disponibles para un negocio y servicio específico
 exports.obtenerEmpleadosDisponibles = async (req, res) => {
     const { negocioId, servicioId } = req.params;
@@ -507,5 +452,127 @@ exports.obtenerEmpleadosDisponibles = async (req, res) => {
     } catch (error) {
         console.error('Error al obtener empleados disponibles:', error);
         res.status(500).json({ message: 'Error al obtener empleados disponibles' });
+    }
+};
+
+exports.crearReserva = async (req, res) => {
+    const {
+        clienteId,
+        negocioId,
+        servicioId,
+        empleadoId, // Recibido desde el frontend
+        fecha,
+        hora_inicio,
+        hora_fin,
+        comentario_cliente,
+    } = req.body;
+
+    try {
+        // Validar datos obligatorios
+        if (!clienteId || !negocioId || !servicioId || !empleadoId || !fecha || !hora_inicio || !hora_fin) {
+            return res.status(400).json({ 
+                message: 'Faltan datos obligatorios para crear la reserva.',
+                dataRecibida: req.body, // Para depuración
+            });
+        }
+
+        // Buscar el id_usuario correspondiente al id_empleado
+        const empleadoNegocio = await EmpleadoNegocio.findOne({
+            where: { id: empleadoId, id_negocio: negocioId },
+        });
+
+        if (!empleadoNegocio) {
+            return res.status(404).json({
+                message: 'No se encontró el empleado asociado al negocio proporcionado.',
+            });
+        }
+
+        const id_usuario = empleadoNegocio.id_usuario; // Extraer el id_usuario
+        const nombre_profesional = empleadoNegocio.usuario?.nombre_usuario || 'Profesional no especificado';
+        
+        // Buscar información del negocio
+        const negocio = await Negocio.findByPk(negocioId, {
+            attributes: ['nombre_negocio'],
+        });
+
+        if (!negocio) {
+            return res.status(404).json({
+                message: 'No se encontró el negocio proporcionado.',
+            });
+        }
+
+        // Buscar información del servicio
+        const servicio = await Servicio.findByPk(servicioId, {
+            attributes: ['nombre_servicio'],
+        });
+
+        if (!servicio) {
+            return res.status(404).json({
+                message: 'No se encontró el servicio proporcionado.',
+            });
+        }
+
+        // Crear la reserva
+        const nuevaReserva = await Reserva.create({
+            id_cliente: clienteId,
+            id_negocio: negocioId,
+            id_servicio: servicioId,
+            id_usuario, // Usamos el id_usuario obtenido
+            id_empleado: empleadoId, // Guardamos también el id_empleado para trazabilidad
+            fecha,
+            hora_inicio,
+            hora_fin,
+            comentario_cliente,
+            estado: 'reservado',
+            fecha_creacion: new Date(),
+        });
+
+        // envio de  correo 
+        // Buscar información del cliente
+        const cliente = await Cliente.findByPk(clienteId);
+
+        // Enviar correo al cliente
+        if (!cliente || !cliente.email_cliente) {
+            console.error('El cliente no tiene un correo válido:', cliente);
+        } else {
+            // Enviar correo al cliente
+            try {
+                console.log('Enviando correo con los datos:', {
+                    to: cliente.email_cliente,
+                    nombre_usuario: cliente.nombre,
+                    numero_reserva: nuevaReserva.id,
+                    negocio: negocio.nombre, 
+                    servicio: servicio.nombre, 
+                    profesional, 
+                    fecha,
+                    hora_inicio,
+                    hora_fin,
+                });
+
+                await sendEmail({
+                    to: cliente.email_cliente, // Correo del cliente
+                    subject: 'Confirmación de Reserva', // Asunto del correo
+                    templateId: 'd-d6cf6663ca1441468c43fc510b22cb33', // ID de tu plantilla
+                    dynamicData: {
+                        nombre_usuario: cliente.nombre,
+                        numero_reserva: nuevaReserva.id, // ID de la reserva
+                        negocio: negocio.nombre,
+                        servicio: servicio.nombre,
+                        profesional,
+                        fecha,
+                        hora_inicio,
+                        hora_fin,
+                    },
+                });
+            } catch (error) {
+                console.error('Error al enviar el correo:', error.message);
+                // El correo fallido no debería detener el proceso principal.
+            }
+        }
+
+        res.status(201).json({ message: 'Reserva creada exitosamente.', reserva: nuevaReserva });
+    } catch (error) {
+        console.error('Error al crear la reserva:', error);
+        res.status(500).json({ message: 'Error interno al crear la reserva.', error: error.message });
     }
 };
