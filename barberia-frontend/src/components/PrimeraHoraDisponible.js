@@ -102,7 +102,7 @@ const PrimeraHoraDisponible = ({ negocioId, servicioId }) => {
             );
             sessionStorage.setItem('bloqueSeleccionado', JSON.stringify(bloqueSeleccionado));
             sessionStorage.setItem('fechaSeleccionada', diaSeleccionado);
-            navigate('/resumen');
+            navigate('/paso-registro-reserva');
         } else {
             alert('Por favor, seleccione un bloque de horario antes de continuar.');
         }

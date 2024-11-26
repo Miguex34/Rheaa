@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import PrimeraHoraDisponible from './PrimeraHoraDisponible';
 import ProfesionalEspecifico from './ProfesionalEspecifico';
+import '../PreguntaPreferencia.css'; // Archivo CSS para el diseño
+import logorhea from "../assets/images/logorhea.png";
 
 const PreguntaPreferencia = () => {
     // Leer `negocioId` y `servicioId` desde `sessionStorage`
@@ -16,8 +18,13 @@ const PreguntaPreferencia = () => {
 
     return (
         <div style={{ padding: '20px', textAlign: 'center' }}>
+            <header className="registro-header">
+                <div className="logo-container">
+                    <img src={logorhea} alt="Rhea Reserve Logo" className="registro-logo" />
+                </div>
+            </header>
             {/* "Nuevo" - Título principal */}
-            <h1 style={{ fontSize: '36px', fontWeight: 'bold', color: '#855bff', marginBottom: '10px' }}>
+            <h1 style={{ fontSize: '36px', fontWeight: 'bold', color: '#855bff', marginBottom: '10px' , paddingTop: '50px'}}>
                 Reserva tu Hora
             </h1>
 
