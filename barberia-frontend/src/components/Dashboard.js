@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, BarChart, Bar,PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es'; 
@@ -211,7 +211,7 @@ const Dashboard = () => {
   </div>
   {dataEvolucion.length > 0 ? (
     <ResponsiveContainer width="100%" height={400}>
-    <LineChart
+    <BarChart
       data={dataEvolucion}
       margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
     >
@@ -252,15 +252,13 @@ const Dashboard = () => {
         height={36}
         wrapperStyle={{ fontFamily: 'Arial, sans-serif', color: '#4A4A4A' }}
       />
-      <Line
-        type="monotone"
+      <Bar
         dataKey="total_reservas"
-        stroke="#6c63ff"
-        strokeWidth={3}
-        dot={{ r: 5, fill: '#6c63ff' }}
-        activeDot={{ r: 8, fill: '#ff7f7f' }}
+        fill="#6c63ff"
+        barSize={30}
+        radius={[5, 5, 0, 0]}
       />
-    </LineChart>
+    </BarChart>
   </ResponsiveContainer>
   
   ) : (
@@ -276,15 +274,22 @@ const Dashboard = () => {
       <div style={{ marginBottom: '40px', background: '#f9f9f9', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
         <h2 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>Ventas por Mes</h2>
         <ResponsiveContainer width="100%" height={400}>
-          <BarChart data={dataPorMes} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="mes" label={{ value: 'Meses', position: 'bottom', dy: 20 }} />
-            <YAxis label={{ value: 'Reservas Totales', angle: -90, position: 'insideLeft', dx: -10 }} />
-            <Tooltip />
-            <Legend verticalAlign="top" height={36} />
-            <Bar dataKey="total_reservas" fill="#82ca9d" radius={[10, 10, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
+        <LineChart data={dataPorMes} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="mes" label={{ value: 'Meses', position: 'bottom', dy: 20 }} />
+          <YAxis label={{ value: 'Reservas Totales', angle: -90, position: 'insideLeft', dx: -10 }} />
+          <Tooltip />
+          <Legend verticalAlign="top" height={36} />
+          <Line
+            type="monotone"
+            dataKey="total_reservas"
+            stroke="#82ca9d"
+            strokeWidth={2}
+            dot={{ r: 4, fill: '#82ca9d' }}
+            activeDot={{ r: 6, fill: '#82ca9d' }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
       </div>
     </div>
   );
