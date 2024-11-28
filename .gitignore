@@ -51,4 +51,5 @@ Thumbs.db
 *.jpg
 
 uploads
-.env
+barberia-backend/.env
+
