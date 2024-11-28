@@ -6,6 +6,9 @@ const pagoController = require('../controllers/pagoController');
 // Ruta para crear un nuevo pago
 router.post('/pagos', pagoController.createPago);
 
+router.post('/completado', pagoController.completePago);
+
+
 // Ruta para obtener todos los pagos
 router.get('/pagos', pagoController.getPagos);
 

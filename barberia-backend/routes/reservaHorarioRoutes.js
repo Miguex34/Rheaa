@@ -3,6 +3,9 @@ const express = require('express');
 const router = express.Router();
 const reservaHorarioController = require('../controllers/reservaHorarioController');
 
+
+router.post('/crear', reservaHorarioController.crearReserva);
+
 // Ruta para obtener los empleados disponibles para un servicio en un negocio
 router.get('/disponibilidad/empleados/:negocioId/:servicioId', reservaHorarioController.obtenerEmpleadosDisponibles);
 
@@ -19,6 +22,6 @@ router.get('/disponibilidad/general/:negocioId/:servicioId', reservaHorarioContr
 router.get('/disponibilidad/empleado/:negocioId/:servicioId/:empleadoId', reservaHorarioController.obtenerDisponibilidadEmpleado);
 
 // Ruta para crear una nueva reserva
-router.post('/crear', reservaHorarioController.crearReserva);
+
 
 module.exports = router;

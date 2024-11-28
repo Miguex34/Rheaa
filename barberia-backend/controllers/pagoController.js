@@ -1,25 +1,53 @@
+const { WebpayPlus, Options, Environment } = require('transbank-sdk');
 const Pago = require('../models/Pago');
 const Reserva = require('../models/Reserva');
-const transbank = require('transbank-sdk'); // Asegúrate de tener configurado este paquete o SDK
+
+// Configuración del SDK de Transbank
+const options = new Options(
+  '597055555532', // Código de comercio para pruebas
+  '579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C' // API Key
+);
+const transaction = new WebpayPlus.Transaction(options, Environment.Integration);
 
 // Crear un pago
 exports.createPago = async (req, res) => {
   try {
     const { id_reserva, monto, metodo_pago } = req.body;
 
-    // Validación simple
+    // Validaciones
     if (!id_reserva || !monto || !metodo_pago) {
       return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
     }
 
-    // Crear una instancia de Transbank Webpay Plus Transaction
-    const transaction = new transbank.WebpayPlus.Transaction();
-    const response = await transaction.create(
-      'Tienda123', // Código del comercio de integración (por ejemplo: 597055555532)
-      'Orden123',  // Número de orden única para el pago
-      monto,       // Monto a pagar
-      'http://localhost:5000/api/pagos/completado' // URL donde se redirige al cliente después del pago
-    );
+    if (typeof monto !== 'number' || monto <= 0) {
+      return res.status(400).json({ message: 'El monto debe ser un número positivo.' });
+    }
+
+    if (metodo_pago !== 'Transbank') {
+      return res.status(400).json({ message: 'Método de pago no válido.' });
+    }
+
+    const reserva = await Reserva.findByPk(id_reserva);
+    if (!reserva) {
+      return res.status(404).json({ message: 'Reserva no encontrada.' });
+    }
+
+    // Crear la transacción
+    const buyOrder = `Reserva-${id_reserva}-${Date.now()}`;
+    const sessionId = `Session-${id_reserva}-${Date.now()}`;
+    const returnUrl = 'http://localhost:5000/api/pagos/completado';
+
+    console.log('Parámetros enviados a Transbank:');
+    console.log('buyOrder:', buyOrder);
+    console.log('sessionId:', sessionId);
+    console.log('monto:', monto);
+    console.log('returnUrl:', returnUrl);
+
+    const response = await transaction.create(buyOrder, sessionId, monto, returnUrl);
+
+    if (!response.token || !response.url) {
+      throw new Error('Error al generar la transacción con Transbank');
+    }
 
     // Guardar el pago en la base de datos
     const pago = await Pago.create({
@@ -27,42 +55,67 @@ exports.createPago = async (req, res) => {
       monto,
       metodo_pago,
       fecha: new Date(),
-      estado: 'Pendiente', // Estado inicial del pago
-      codigo_transaccion: response.token, // Guardamos el token de Transbank
+      estado: 'Pendiente',
+      codigo_transaccion: response.token,
+      url_transaccion: response.url,
     });
 
-    res.status(201).json({ message: 'Pago creado con éxito', pago, url: response.url });
+    res.status(201).json({
+      message: 'Pago creado con éxito',
+      pago,
+      url: response.url,
+    });
   } catch (error) {
-    console.error('Error al crear el pago:', error);
-    res.status(500).json({ message: 'Error al crear el pago', error });
+    console.error('Error al crear el pago:', error.message);
+    res.status(500).json({ message: 'Error al crear el pago', error: error.message });
   }
 };
+
+
 
 // Completar el pago después de la respuesta de Transbank
 exports.completePago = async (req, res) => {
   try {
-    const token = req.body.token_ws;
+    const { token_ws } = req.body;
 
-    // Crear una instancia de Transbank Webpay Plus Transaction
-    const transaction = new transbank.WebpayPlus.Transaction();
-    const response = await transaction.commit(token);
-
-    // Actualizar el pago en la base de datos
-    const pago = await Pago.findOne({ where: { codigo_transaccion: token } });
-
-    if (!pago) {
-      return res.status(404).json({ message: 'Pago no encontrado' });
+    if (!token_ws) {
+      return res.status(400).json({ message: 'Token de transacción no proporcionado.' });
     }
 
-    pago.estado = response.status === 'AUTHORIZED' ? 'Completado' : 'Rechazado';
+    // Confirmar la transacción con Transbank
+    const response = await WebpayPlus.Transaction.commit(token_ws);
+
+    const { status } = response;
+
+    // Buscar el pago en la base de datos
+    const pago = await Pago.findOne({ where: { codigo_transaccion: token_ws } });
+    if (!pago) {
+      return res.status(404).json({ message: 'Pago no encontrado en la base de datos.' });
+    }
+
+    // Actualizar el estado del pago
+    pago.estado = status === 'AUTHORIZED' ? 'Completado' : 'Rechazado';
     await pago.save();
 
-    res.status(200).json({ message: 'Pago completado', pago });
+    // Actualizar la reserva asociada si el pago fue autorizado
+    if (status === 'AUTHORIZED' && pago.id_reserva) {
+      const reserva = await Reserva.findByPk(pago.id_reserva);
+      if (reserva) {
+        reserva.id_pago = pago.id;
+        await reserva.save();
+      }
+    }
+
+    res.status(200).json({
+      message: `Pago ${status === 'AUTHORIZED' ? 'autorizado' : 'rechazado'}`,
+      pago,
+    });
   } catch (error) {
-    console.error('Error al completar el pago:', error);
-    res.status(500).json({ message: 'Error al completar el pago', error });
+    console.error('Error al completar el pago:', error.message);
+    res.status(500).json({ message: 'Error al completar el pago', error: error.message });
   }
 };
+
 
 // Obtener todos los pagos
 exports.getPagos = async (req, res) => {
